@@ -51,13 +51,13 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
             changes['modified_files'].append(change.b_path)
             # Get more detailed diff information
             try:
-                patch = change.diff.decode('utf-8')
+                patch = change.diff if isinstance(change.diff, str) else change.diff.decode('utf-8')
                 changes['diff_details'].append({
                     'file': change.b_path,
                     'patch': patch
                 })
             except Exception as e:
-                print(f"Could not decode diff for {change.b_path}: {e}")
+                print(f"Could not process diff for {change.b_path}: {e}")
         elif change.change_type == 'D':
             changes['deleted_files'].append(change.b_path)
     
