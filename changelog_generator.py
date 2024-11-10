@@ -2,6 +2,7 @@ import argparse
 import git
 import os
 import sys
+from typing import Dict, List
 from dotenv import load_dotenv
 
 # LLM and Langchain imports
