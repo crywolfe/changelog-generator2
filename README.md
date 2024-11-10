@@ -28,10 +28,17 @@ source changelog_env/bin/activate  # On Windows, use `changelog_env\Scripts\acti
 
 3. Install dependencies:
 ```bash
-pip install GitPython langchain-openai python-dotenv
+pip install GitPython langchain-openai langchain-community python-dotenv
 ```
 
-4. Set up OpenAI API Key:
+4. Optional: Set up Ollama
+```bash
+# Install Ollama from https://ollama.com/
+# Pull a model, e.g.:
+ollama pull llama2
+```
+
+5. Set up OpenAI API Key (if using OpenAI):
 ```bash
 # Create a .env file in your project directory
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
@@ -73,11 +80,18 @@ python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
 ```
 
+5. Use Ollama with a specific model:
+```bash
+python changelog_generator.py HEAD~1 HEAD --model-provider ollama --model-name llama2
+```
+
 ## Arguments
 
 - `commit1`: First commit hash or reference
 - `commit2`: Second commit hash or reference
 - `--repo`: Optional path to the Git repository (default is current directory)
+- `--model-provider`: AI model provider (openai or ollama, default is openai)
+- `--model-name`: Specific model to use (default: gpt-4-turbo for OpenAI, llama2 for Ollama)
 
 ## Troubleshooting
 

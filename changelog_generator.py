@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 # LLM and Langchain imports
 from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
@@ -16,22 +17,32 @@ from changelog_utils import validate_commits, get_commit_changes
 # Load environment variables
 load_dotenv()
 
-def generate_ai_changelog(changes: Dict[str, List[str]]) -> str:
+def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'openai', model_name: str = 'gpt-4-turbo') -> str:
     """
     Generate a changelog using an AI model.
     
     Args:
         changes (dict): Detailed changes between commits
+        model_provider (str): The AI model provider (openai or ollama)
+        model_name (str): The specific model to use
     
     Returns:
         str: AI-generated changelog
     """
-    # Initialize the OpenAI language model
-    llm = ChatOpenAI(
-        model="gpt-4-turbo", 
-        temperature=0.3, 
-        max_tokens=500
-    )
+    # Initialize the language model based on provider
+    if model_provider == 'openai':
+        llm = ChatOpenAI(
+            model=model_name, 
+            temperature=0.3, 
+            max_tokens=500
+        )
+    elif model_provider == 'ollama':
+        llm = ChatOllama(
+            model=model_name,
+            temperature=0.3
+        )
+    else:
+        raise ValueError(f"Unsupported model provider: {model_provider}")
     
     # Create a prompt template for changelog generation
     changelog_prompt = PromptTemplate(
@@ -81,6 +92,10 @@ def main():
     parser.add_argument('--repo', default='.', help='Path to the Git repository (default: current directory)')
     parser.add_argument('--output', '-o', default='CHANGELOG.md', 
                         help='Output file for the generated changelog (default: CHANGELOG.md)')
+    parser.add_argument('--model-provider', choices=['openai', 'ollama'], default='openai', 
+                        help='AI model provider (default: openai)')
+    parser.add_argument('--model-name', default=None, 
+                        help='Specific model to use (default: gpt-4-turbo for OpenAI, llama2 for Ollama)')
     
     args = parser.parse_args()
     
@@ -98,14 +113,24 @@ def main():
     
     # Generate AI-powered changelog
     try:
-        ai_changelog = generate_ai_changelog(changes)
+        # Set default model names if not specified
+        model_name = args.model_name
+        if model_name is None:
+            model_name = 'gpt-4-turbo' if args.model_provider == 'openai' else 'llama2'
+        
+        ai_changelog = generate_ai_changelog(
+            changes, 
+            model_provider=args.model_provider, 
+            model_name=model_name
+        )
         
         # Write changelog to file
         with open(args.output, 'w') as f:
-            f.write(f"# Changelog: {commit1.hexsha[:7]}..{commit2.hexsha[:7]}\n\n")
+            f.write(f"# Changelog: {commit1.hexsha[:7]}..{commit2.hexsha[:7]} (via {args.model_provider}/{model_name})\n\n")
             f.write(ai_changelog)
         
         print(f"Changelog generated and saved to {args.output}")
+        print(f"\nChangelog generated using {args.model_provider}/{model_name}")
         print("\nChangelog Preview:")
         print(ai_changelog)
     
