@@ -8,6 +8,9 @@ This Python script generates a detailed changelog between two Git commits, helpi
 
 - Python 3.7+
 - GitPython library
+- OpenAI API Key
+- Langchain
+- python-dotenv
 
 ## Installation
 
@@ -25,7 +28,13 @@ source changelog_env/bin/activate  # On Windows, use `changelog_env\Scripts\acti
 
 3. Install dependencies:
 ```bash
-pip install GitPython
+pip install GitPython langchain-openai python-dotenv
+```
+
+4. Set up OpenAI API Key:
+```bash
+# Create a .env file in your project directory
+echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
 
 ## Usage
@@ -54,6 +63,11 @@ python changelog_generator.py abc1234 def5678
 python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 ```
 
+4. Generate changelog with custom output file:
+```bash
+python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
+```
+
 ## Arguments
 
 - `commit1`: First commit hash or reference
@@ -68,9 +82,10 @@ python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 
 ## Future Improvements
 
-- Markdown changelog generation
-- More detailed diff information
-- LLM-powered changelog analysis
+- Enhanced AI changelog generation
+- Support for multiple LLM providers
+- Customizable changelog templates
+- Improved diff parsing and analysis
 
 ## License
 
