@@ -37,6 +37,11 @@ pip install GitPython langchain-openai python-dotenv
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
 
+## Project Structure
+
+- `changelog_generator.py`: Main script for generating changelogs
+- `changelog_utils.py`: Utility functions for commit and repository operations
+
 ## Usage
 
 ### Basic Usage
