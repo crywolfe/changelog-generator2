@@ -3,7 +3,7 @@ import git
 import os
 import tempfile
 
-from ..changelog_utils import validate_commits, get_commit_changes
+from changelog_utils import validate_commits, get_commit_changes
 
 @pytest.fixture
 def temp_git_repo():

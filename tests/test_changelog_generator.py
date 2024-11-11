@@ -4,7 +4,7 @@ import tempfile
 import git
 from unittest.mock import patch, MagicMock
 
-from ..changelog_generator import generate_ai_changelog, main
+from changelog_generator import generate_ai_changelog, main
 
 @pytest.fixture
 def sample_changes():
