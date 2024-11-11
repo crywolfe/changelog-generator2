@@ -3,7 +3,7 @@ import git
 import os
 import tempfile
 
-from changelog_utils import validate_commits, get_commit_changes
+from changelog_utils import validate_commits, get_commit_changes, get_commit_changes_modified
 
 @pytest.fixture
 def temp_git_repo():
@@ -69,8 +69,21 @@ def test_get_commit_changes_modified(temp_git_repo):
     """Test get_commit_changes with a modified file."""
     repo, initial_commit, _, third_commit = temp_git_repo
     
-    # Test changes between initial and third commit
+    # Test changes between initial and third commit (modified file)
     changes = get_commit_changes(repo, initial_commit, third_commit)
     assert 'initial.txt' in changes['modified_files']
     assert len(changes['commit_messages']) == 1
     assert changes['commit_messages'][0] == "Modified initial file"
+
+
+def test_get_commit_changes_modified_function(temp_git_repo):
+    """Test the new get_commit_changes_modified function."""
+    repo, initial_commit, second_commit, third_commit = temp_git_repo
+    
+    # Test with initial and third commit (modified file)
+    modified_files = get_commit_changes_modified(repo, initial_commit, third_commit)
+    assert modified_files == ['initial.txt']
+    
+    # Test with initial and second commit (no modifications)
+    modified_files = get_commit_changes_modified(repo, initial_commit, second_commit)
+    assert modified_files == []

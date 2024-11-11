@@ -1,6 +1,6 @@
 import git
 import sys
-from typing import Dict, List
+from typing import Dict, List, Union
 
 def validate_commits(repo, commit1, commit2):
     """
@@ -21,6 +21,34 @@ def validate_commits(repo, commit1, commit2):
     except git.exc.BadName:
         print(f"Error: One or both commits ({commit1}, {commit2}) do not exist in the repository.")
         sys.exit(1)
+
+def get_commit_changes_modified(repo: git.Repo, commit1: Union[str, git.Commit], commit2: Union[str, git.Commit]) -> List[str]:
+    """
+    Retrieve modified files between two commits.
+    
+    Args:
+        repo (git.Repo): Git repository object
+        commit1 (str or git.Commit): First commit
+        commit2 (str or git.Commit): Second commit
+    
+    Returns:
+        list: List of modified files
+    """
+    # Convert commit references to commit objects if they are strings
+    if isinstance(commit1, str):
+        commit1 = repo.commit(commit1)
+    if isinstance(commit2, str):
+        commit2 = repo.commit(commit2)
+    
+    # Get the diff between commits
+    diff = commit1.diff(commit2)
+    
+    # Collect modified files
+    modified_files = [
+        change.b_path for change in diff if change.change_type == 'M'
+    ]
+    
+    return modified_files
 
 def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     """
