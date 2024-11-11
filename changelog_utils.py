@@ -62,6 +62,12 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     Returns:
         dict: Detailed changes between commits
     """
+    # Convert commit references to commit objects if they are strings
+    if isinstance(commit1, str):
+        commit1 = repo.commit(commit1)
+    if isinstance(commit2, str):
+        commit2 = repo.commit(commit2)
+    
     diff = commit1.diff(commit2)
     
     changes = {
@@ -89,8 +95,7 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
         elif change.change_type == 'D':
             changes['deleted_files'].append(change.b_path)
     
-    # Collect commit messages between the two commits
-    for commit in repo.iter_commits(f'{commit1.hexsha}..{commit2.hexsha}'):
-        changes['commit_messages'].append(commit.message.strip())
+    # Collect only the commit message for the last commit in the range
+    changes['commit_messages'] = [commit2.message.strip()]
     
     return changes

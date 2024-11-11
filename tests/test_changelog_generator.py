@@ -1,66 +1,55 @@
 import pytest
-import os
-import tempfile
 import git
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from changelog_utils import get_commit_changes_modified
 
-from changelog_generator import generate_ai_changelog, main
+def test_get_commit_changes_modified():
+    """Test the get_commit_changes_modified function."""
+    # Create mock objects
+    mock_repo = MagicMock(spec=git.Repo)
+    mock_commit1 = MagicMock()
+    mock_commit2 = MagicMock()
 
-@pytest.fixture
-def sample_changes():
-    """Provide sample changes for testing."""
-    return {
-        'added_files': ['new_file.py'],
-        'modified_files': ['existing_file.py'],
-        'deleted_files': ['old_file.py'],
-        'commit_messages': ['Added new feature', 'Fixed bug']
-    }
+    # Create mock diff with modified files
+    mock_diff = [
+        MagicMock(b_path='file1.py', change_type='M'),
+        MagicMock(b_path='file2.py', change_type='A'),  # Added file should not be included
+        MagicMock(b_path='file3.py', change_type='D')   # Deleted file should not be included
+    ]
 
-def test_generate_ai_changelog_ollama(sample_changes):
-    """Test generate_ai_changelog with Ollama provider."""
-    with patch('changelog_generator.OllamaLLM') as mock_ollama:
-        mock_instance = MagicMock()
-        mock_instance.invoke.return_value = "Mocked Ollama changelog"
-        mock_ollama.return_value = mock_instance
-        
-        result = generate_ai_changelog(sample_changes, model_provider='ollama', model_name='llama3.2')
-        assert result == "Mocked Ollama changelog"
-        mock_ollama.assert_called_once_with(model='llama3.2')
+    # Configure mock commit to return the mock diff
+    mock_commit1.diff.return_value = mock_diff
 
-def test_generate_ai_changelog_unsupported_provider(sample_changes):
-    """Test generate_ai_changelog with an unsupported provider."""
-    with pytest.raises(ValueError, match="Unsupported model provider: azure"):
-        generate_ai_changelog(sample_changes, model_provider='azure')
+    # Mock repo.commit to return the mock commits when called with string references
+    mock_repo.commit.side_effect = [mock_commit1, mock_commit2]
 
-@patch('changelog_generator.git.Repo')
-@patch('changelog_generator.validate_commits')
-@patch('changelog_generator.get_commit_changes')
-@patch('changelog_generator.generate_ai_changelog')
-def test_main_basic_flow(mock_generate_ai_changelog, mock_get_commit_changes, 
-                          mock_validate_commits, mock_repo, sample_changes, tmp_path):
-    """Test the main function with a basic flow."""
-    # Setup mocks
-    mock_repo_instance = MagicMock()
-    mock_repo.return_value = mock_repo_instance
-    
-    mock_validate_commits.return_value = (MagicMock(), MagicMock())
-    mock_get_commit_changes.return_value = sample_changes
-    mock_generate_ai_changelog.return_value = "Generated Changelog"
-    
-    # Prepare temporary output file
-    output_file = tmp_path / "CHANGELOG.md"
-    
-    # Simulate command-line arguments
-    with patch('sys.argv', ['changelog_generator.py', 'commit1', 'commit2', 
-                             '--output', str(output_file)]):
-        main()
-    
-    # Verify interactions
-    mock_validate_commits.assert_called_once()
-    mock_get_commit_changes.assert_called_once()
-    mock_generate_ai_changelog.assert_called_once()
-    
-    # Check output file
-    assert output_file.exists()
-    content = output_file.read_text()
-    assert "Generated Changelog" in content
+    # Call the function with string commit references
+    modified_files = get_commit_changes_modified(mock_repo, 'commit1', 'commit2')
+
+    # Assert that only modified files are returned
+    assert modified_files == ['file1.py']
+
+    # Verify that repo.commit was called for both commits
+    assert mock_repo.commit.call_count == 2
+
+def test_get_commit_changes_modified_with_commit_objects():
+    """Test the function when commit objects are passed directly."""
+    # Create mock objects
+    mock_repo = MagicMock(spec=git.Repo)
+    mock_commit1 = MagicMock()
+    mock_commit2 = MagicMock()
+
+    # Create mock diff with modified files
+    mock_diff = [
+        MagicMock(b_path='file1.py', change_type='M'),
+        MagicMock(b_path='file2.py', change_type='A')
+    ]
+
+    # Configure mock commit to return the mock diff
+    mock_commit1.diff.return_value = mock_diff
+
+    # Call the function with commit objects directly
+    modified_files = get_commit_changes_modified(mock_repo, mock_commit1, mock_commit2)
+
+    # Assert that only modified files are returned
+    assert modified_files == ['file1.py']

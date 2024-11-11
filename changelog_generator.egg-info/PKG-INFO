@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: changelog_generator
+Version: 0.1.0
+Requires-Dist: gitpython
+Requires-Dist: python-dotenv
+Requires-Dist: langchain
+Requires-Dist: langchain-community
+Requires-Dist: langchain-openai

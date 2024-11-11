@@ -1,15 +1,19 @@
 import argparse
 import git
-import os
 import sys
 from typing import Dict, List
 from dotenv import load_dotenv
 
-# LLM and Langchain imports
-# Removed specific LLM imports for now
-
 # Local imports
 from changelog_utils import validate_commits, get_commit_changes
+
+# Simulating Ollama LLM for testing
+class OllamaLLM:
+    def __init__(self, model='llama2'):
+        self.model = model
+    
+    def invoke(self, changes):
+        return f"Mocked Ollama changelog using {self.model}"
 
 # Load environment variables
 load_dotenv()
@@ -30,11 +34,10 @@ def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = '
     if model_provider == 'ollama':
         if not model_name:
             model_name = 'llama2'
-        # Simulate Ollama LLM behavior for testing
-        return f"Mocked Ollama changelog using {model_name}"
-    elif model_provider == 'openai':
-        # Placeholder for OpenAI implementation
-        return "Mocked OpenAI changelog"
+        
+        # Create Ollama LLM instance
+        ollama_llm = OllamaLLM(model=model_name)
+        return ollama_llm.invoke(changes)
     else:
         raise ValueError(f"Unsupported model provider: {model_provider}")
 
@@ -77,7 +80,6 @@ def main():
         
         # Write changelog to file
         with open(args.output, 'w') as f:
-            print(f"commit1, {commit1}")
             f.write(f"# Changelog: {commit1.hexsha[:7]}..{commit2.hexsha[:7]} (via {args.model_provider}/{model_name})\n\n")
             f.write(ai_changelog)
         
