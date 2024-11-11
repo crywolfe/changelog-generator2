@@ -6,9 +6,7 @@ from typing import Dict, List
 from dotenv import load_dotenv
 
 # LLM and Langchain imports
-from langchain_community.chat_models import ChatOllama
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+# Removed specific LLM imports for now
 
 # Local imports
 from changelog_utils import validate_commits, get_commit_changes
@@ -16,7 +14,7 @@ from changelog_utils import validate_commits, get_commit_changes
 # Load environment variables
 load_dotenv()
 
-def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'openai', model_name: str = None) -> str:
+def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'ollama', model_name: str = None) -> str:
     """
     Generate a changelog using an AI model.
     
@@ -32,8 +30,11 @@ def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = '
     if model_provider == 'ollama':
         if not model_name:
             model_name = 'llama2'
-        # Mocking Ollama LLM for now
-        return "Mocked Ollama changelog"
+        # Simulate Ollama LLM behavior for testing
+        return f"Mocked Ollama changelog using {model_name}"
+    elif model_provider == 'openai':
+        # Placeholder for OpenAI implementation
+        return "Mocked OpenAI changelog"
     else:
         raise ValueError(f"Unsupported model provider: {model_provider}")
 
