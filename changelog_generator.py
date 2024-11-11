@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 # Local imports
 from changelog_utils import validate_commits, get_commit_changes
 
+# Load environment variables
+load_dotenv()
+
 # Simulating Ollama LLM for testing
 class OllamaLLM:
     def __init__(self, model='llama2'):
@@ -14,9 +17,6 @@ class OllamaLLM:
     
     def invoke(self, changes):
         return f"Mocked Ollama changelog using {self.model}"
-
-# Load environment variables
-load_dotenv()
 
 def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'ollama', model_name: str = None) -> str:
     """

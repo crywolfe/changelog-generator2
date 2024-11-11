@@ -2,7 +2,6 @@ import pytest
 import git
 import os
 import tempfile
-import sys
 
 from changelog_utils import validate_commits, get_commit_changes, get_commit_changes_modified
 
