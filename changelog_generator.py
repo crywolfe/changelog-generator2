@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from langchain_community.chat_models import ChatOllama
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain_ollama.llms import OllamaLLM
 
 # Local imports
 from changelog_utils import validate_commits, get_commit_changes
@@ -33,7 +32,7 @@ def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = '
     if model_provider == 'ollama':
         if not model_name:
             model_name = 'llama2'
-        llm = OllamaLLM(model=model_name)
+        # Mocking Ollama LLM for now
         return "Mocked Ollama changelog"
     else:
         raise ValueError(f"Unsupported model provider: {model_provider}")
