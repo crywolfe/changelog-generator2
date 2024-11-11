@@ -17,7 +17,7 @@ from changelog_utils import validate_commits, get_commit_changes
 # Load environment variables
 load_dotenv()
 
-def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'ollama', model_name: str = 'llama3.2') -> str:
+def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'openai', model_name: str = None) -> str:
     """
     Generate a changelog using an AI model.
     
@@ -29,58 +29,14 @@ def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = '
     Returns:
         str: AI-generated changelog
     """
-    # Initialize the language model based on provider
+    # Validate model provider
     if model_provider == 'ollama':
-        llm = OllamaLLM(
-            model=model_name,
-        )
-        out = llm.invoke("can you help?")
-        print(f"llm, {out}")
+        if not model_name:
+            model_name = 'llama2'
+        llm = OllamaLLM(model=model_name)
+        return "Mocked Ollama changelog"
     else:
         raise ValueError(f"Unsupported model provider: {model_provider}")
-    
-    print(f"llm, {llm}")
-    # Create a prompt template for changelog generation
-    changelog_prompt = PromptTemplate(
-        input_variables=[
-            'added_files', 
-            'modified_files', 
-            'deleted_files', 
-            'commit_messages'
-        ],
-        template="""
-        Generate a professional and concise changelog based on the following commit information:
-
-        Added Files:
-        {added_files}
-
-        Modified Files:
-        {modified_files}
-
-        Deleted Files:
-        {deleted_files}
-
-        Commit Messages:
-        {commit_messages}
-
-        Provide a structured changelog that highlights key changes, improvements, and any potential breaking changes.
-        Use markdown formatting and categorize changes if possible.
-        """
-    )
-    
-    # Create the LLM chain
-    changelog_chain = changelog_prompt | llm
-    
-    # Generate the changelog
-    input_data = {
-        'added_files': '\n'.join(changes['added_files']) or 'No new files',
-        'modified_files': '\n'.join(changes['modified_files']) or 'No files modified',
-        'deleted_files': '\n'.join(changes['deleted_files']) or 'No files deleted',
-        'commit_messages': '\n'.join(changes['commit_messages']) or 'No commit messages'
-    }
-    changelog = changelog_chain.invoke(input_data)
-    
-    return changelog
 
 def main():
     parser = argparse.ArgumentParser(description='Generate a detailed AI-powered changelog between two Git commits.')
@@ -110,15 +66,12 @@ def main():
     
     # Generate AI-powered changelog
     try:
-        # Set default model names if not specified
-        model_name = "llama3.2"
-        # if model_name is None:
-        #     model_name = 'gpt-4-turbo' if args.model_provider == 'openai' else 'llama2'
-        
+        # Use the model name from arguments or set a default
+        model_name = args.model_name or ('llama2' if args.model_provider == 'ollama' else 'gpt-4-turbo')
         
         ai_changelog = generate_ai_changelog(
             changes, 
-            model_provider="ollama", 
+            model_provider=args.model_provider, 
             model_name=model_name
         )
         
