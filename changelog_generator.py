@@ -33,11 +33,19 @@ def list_ollama_models():
         models = [
             line.split()[0] 
             for line in result.stdout.split('\n')[1:] 
-            if line.strip()
+            if line.strip() and not line.startswith('REPOSITORY')
         ]
+        
+        if not models:
+            print("No Ollama models found. Please pull a model first.")
+        
         return models
-    except subprocess.CalledProcessError:
-        print("Error: Could not retrieve Ollama models.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error retrieving Ollama models: {e}")
+        print("Ensure Ollama is installed and running.")
+        return []
+    except FileNotFoundError:
+        print("Ollama executable not found. Please install Ollama.")
         return []
 
 # Load environment variables
@@ -198,6 +206,18 @@ def generate_ai_changelog(
 
     except Exception as e:
         logger.error(f"Changelog generation error: {e}")
+        
+        # Provide more specific guidance for model-related errors
+        if "model" in str(e).lower():
+            available_models = list_ollama_models()
+            if available_models:
+                print("\nAvailable Ollama models:")
+                for model in available_models:
+                    print(f"- {model}")
+                print("\nTry using one of the above models with --model-name")
+            else:
+                print("\nNo Ollama models found. Use 'ollama pull <model>' to download a model.")
+        
         raise
 
 
@@ -226,8 +246,8 @@ def main():
     )
     parser.add_argument(
         "--model-name",
-        default="llama3.1:8b",
-        help="Specific Ollama model to use (default: llama3.1:8b)",
+        default="qwen2.5:14b",
+        help="Specific Ollama model to use (default: qwen2.5:14b)",
     )
     parser.add_argument(
         "--list-models",
