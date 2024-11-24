@@ -39,10 +39,26 @@ ollama pull llama2
 ```
 
 5. Set up OpenAI API Key (if using OpenAI):
+
+There are two ways to configure your OpenAI API key:
+
+a. Using a `.env` file (Recommended):
 ```bash
 # Create a .env file in your project directory
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
+
+b. Using an environment variable:
+```bash
+# Set the OpenAI API key in your shell
+export CHANGELOG_OPENAI_API_KEY=your_openai_api_key_here
+
+# Or set it inline when running the script
+CHANGELOG_OPENAI_API_KEY=your_openai_api_key_here changelog-generator HEAD~1 HEAD --model-provider openai
+```
+
+Note: You can obtain an API key from the [OpenAI Platform](https://platform.openai.com/api-keys).
+Always keep your API key confidential and never commit it to version control.
 
 ## Project Structure
 
@@ -80,9 +96,23 @@ python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
 ```
 
-5. Use Ollama with a specific model:
+5. Use Ollama or OpenAI with a specific model:
 ```bash
-python changelog_generator.py HEAD~1 HEAD --model-provider ollama --model-name llama2
+# Ollama model selection
+changelog-generator HEAD~1 HEAD --model-provider ollama --model-name llama2
+
+# OpenAI model selection
+changelog-generator HEAD~1 HEAD --model-provider openai --model-name gpt-4-turbo
+```
+
+Available OpenAI models include:
+- `gpt-4`
+- `gpt-4-turbo`
+- `gpt-3.5-turbo`
+
+Available Ollama models can be listed with:
+```bash
+changelog-generator --list-models
 ```
 
 ## Arguments
