@@ -150,12 +150,43 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     def detect_breaking_changes(message):
         """
         Advanced detection of breaking changes using NLP and semantic analysis.
+        
+        Args:
+            message (str): Commit message to analyze
+
+        Returns:
+            bool: True if the message indicates a breaking change, False otherwise
         """
         # Convert message to lowercase for case-insensitive matching
         message_lower = message.lower()
 
-        # Keyword-based detection
-        if any(keyword in message_lower for keyword in breaking_keywords):
+        # Expanded breaking change keywords
+        breaking_keywords = [
+            "breaking",
+            "breaking change",
+            "deprecated",
+            "removed",
+            "breaking api",
+            "breaking interface",
+            "major version",
+            "incompatible",
+            "refactored",
+            "restructured",
+            "breaking change:",
+            "breaking changes:",
+            "breaking modification:",
+            "significant change:",
+            "non-backward compatible",
+            "api modification",
+        ]
+
+        # Keyword-based detection with more comprehensive matching
+        if any(
+            keyword in message_lower or 
+            message_lower.startswith(keyword) or 
+            keyword in message_lower.split()
+            for keyword in breaking_keywords
+        ):
             return True
 
         # Semantic version detection in commit messages
@@ -163,23 +194,58 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
             version_match = re.search(r"v?(\d+\.\d+\.\d+)", message)
             if version_match:
                 version = semantic_version.Version(version_match.group(1))
-                if version.major > 0:  # Major version change
+                if version.major > 0 or version.minor > 0:  # Major or minor version change
                     return True
         except ValueError:
             pass
 
-        # NLP-based semantic analysis
+        # NLP-based semantic analysis with more context
         doc = nlp(message)
+        
+        # Check for specific linguistic patterns indicating breaking changes
+        for sent in doc.sents:
+            # Look for verbs that might indicate significant changes
+            for token in sent:
+                if token.pos_ == "VERB" and token.lemma_ in [
+                    "remove", 
+                    "deprecate", 
+                    "refactor", 
+                    "restructure", 
+                    "modify", 
+                    "change"
+                ]:
+                    return True
+
+        # Check for named entities that might indicate API or interface changes
         for ent in doc.ents:
-            if ent.label_ in ["ORG", "PRODUCT"] and any(
-                keyword in ent.text.lower() for keyword in ["api", "interface"]
+            if ent.label_ in ["ORG", "PRODUCT", "WORK_OF_ART"] and any(
+                keyword in ent.text.lower() for keyword in ["api", "interface", "library"]
             ):
                 return True
 
         return False
 
+    # Collect breaking changes from commit messages
     for message in changes["commit_messages"]:
         if detect_breaking_changes(message):
             changes["breaking_changes"].append(message)
+    
+    # Additional breaking changes detection from diff details
+    for diff_detail in changes.get("diff_details", []):
+        # Check if significant structural changes are present
+        if diff_detail.get("patch"):
+            patch = diff_detail["patch"].lower()
+            structural_changes = [
+                "class renamed",
+                "method signature changed",
+                "interface modified",
+                "function removed",
+                "parameter type changed",
+            ]
+            
+            if any(change in patch for change in structural_changes):
+                changes["breaking_changes"].append(
+                    f"Structural change in {diff_detail.get('file', 'unknown file')}"
+                )
 
     return changes
