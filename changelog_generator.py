@@ -3,20 +3,88 @@ import git
 import sys
 from typing import Dict, List
 from dotenv import load_dotenv
+import ollama
 
 # Local imports
-from changelog_utils import validate_commits, get_commit_changes
+from changelog_utils import validate_commits, get_commit_changes, format_breaking_changes
 
 # Load environment variables
 load_dotenv()
 
-# Simulating Ollama LLM for testing
 class OllamaLLM:
     def __init__(self, model='llama2'):
         self.model = model
     
-    def invoke(self, changes):
-        return f"Mocked Ollama changelog using {self.model}"
+    def _create_changelog_prompt(self, changes: Dict[str, List[str]]) -> str:
+        """
+        Create a detailed prompt for changelog generation.
+        
+        Args:
+            changes (dict): Detailed changes between commits
+        
+        Returns:
+            str: Formatted prompt for LLM
+        """
+        prompt = "Generate a comprehensive changelog based on the following commit changes:\n\n"
+        
+        # Added Files
+        if changes['added_files']:
+            prompt += "New Files Added:\n"
+            for file in changes['added_files']:
+                prompt += f"- {file}\n"
+        
+        # Modified Files
+        if changes['modified_files']:
+            prompt += "\nModified Files:\n"
+            for file in changes['modified_files']:
+                prompt += f"- {file}\n"
+        
+        # Deleted Files
+        if changes['deleted_files']:
+            prompt += "\nDeleted Files:\n"
+            for file in changes['deleted_files']:
+                prompt += f"- {file}\n"
+        
+        # Breaking Changes
+        if changes['breaking_changes']:
+            prompt += "\nBreaking Changes:\n"
+            for change in changes['breaking_changes']:
+                prompt += f"- {change}\n"
+        
+        # Commit Messages
+        if changes['commit_messages']:
+            prompt += "\nCommit Messages:\n"
+            for msg in changes['commit_messages']:
+                prompt += f"- {msg}\n"
+        
+        prompt += "\nPlease generate a detailed, professional changelog that highlights key changes, " \
+                  "new features, bug fixes, and any breaking changes. Use markdown formatting."
+        
+        return prompt
+    
+    def invoke(self, changes: Dict[str, List[str]]) -> str:
+        """
+        Generate changelog using Ollama LLM.
+        
+        Args:
+            changes (dict): Detailed changes between commits
+        
+        Returns:
+            str: Generated changelog
+        """
+        try:
+            prompt = self._create_changelog_prompt(changes)
+            
+            response = ollama.chat(model=self.model, messages=[
+                {'role': 'system', 'content': 'You are a professional software changelog generator.'},
+                {'role': 'user', 'content': prompt}
+            ])
+            
+            return response['message']['content']
+        
+        except Exception as e:
+            print(f"Error generating changelog with Ollama: {e}")
+            return f"Unable to generate changelog. Error: {e}"
 
 def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'ollama', model_name: str = None) -> str:
     """
@@ -52,6 +120,8 @@ def main():
                         help='AI model provider (default: ollama)')
     parser.add_argument('--model-name', default=None, 
                         help='Specific model to use (default: gpt-4-turbo for OpenAI, llama2 for Ollama)')
+    parser.add_argument('--verbose', '-v', action='store_true', 
+                        help='Enable verbose logging')
     
     args = parser.parse_args()
     
@@ -62,10 +132,25 @@ def main():
         sys.exit(1)
     
     # Validate and get commits
-    commit1, commit2 = validate_commits(repo, args.commit1, args.commit2)
+    try:
+        commit1, commit2 = validate_commits(repo, args.commit1, args.commit2)
+    except Exception as e:
+        print(f"Commit validation error: {e}")
+        sys.exit(1)
     
     # Get changes between commits
-    changes = get_commit_changes(repo, commit1, commit2)
+    try:
+        changes = get_commit_changes(repo, commit1, commit2)
+        
+        if args.verbose:
+            print("Detected Changes:")
+            print(f"Added Files: {changes['added_files']}")
+            print(f"Modified Files: {changes['modified_files']}")
+            print(f"Deleted Files: {changes['deleted_files']}")
+            print(f"Breaking Changes: {changes['breaking_changes']}")
+    except Exception as e:
+        print(f"Error retrieving commit changes: {e}")
+        sys.exit(1)
     
     # Generate AI-powered changelog
     try:
@@ -85,8 +170,10 @@ def main():
         
         print(f"Changelog generated and saved to {args.output}")
         print(f"\nChangelog generated using {args.model_provider}/{model_name}")
-        print("\nChangelog Preview:")
-        print(ai_changelog)
+        
+        if args.verbose:
+            print("\nChangelog Preview:")
+            print(ai_changelog)
     
     except Exception as e:
         print(f"Error generating AI changelog: {e}")
