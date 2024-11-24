@@ -1,17 +1,15 @@
-.aider*
-.env
-changelog_env
-.vscode
+# Python bytecode and cache
 __pycache__/
 **/__pycache__/
-tests/__pycache__/
-/__pycache__
-*.cpython-*.pyc
-
-# Byte-compiled / optimized / DLL files
 *.py[cod]
 *$py.class
-**/*.pyc
+
+# Virtual environments
+.env/
+.venv/
+venv/
+env/
+changelog_env/
 
 # Distribution / packaging
 dist/
@@ -19,40 +17,21 @@ build/
 *.egg-info/
 *.egg
 
-# Virtual environments
-venv/
-env/
-.env/
-.venv/
-
-# IDE-specific files
+# IDE and editor files
+.vscode/
 .idea/
+.aider*
 
-# Miscellaneous Python files
+# Logs and test reports
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+
+# System files
+.DS_Store
+
+# Miscellaneous
 *.so
 *.manifest
 *.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# macOS system files
-.DS_Store
