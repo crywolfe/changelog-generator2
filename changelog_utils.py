@@ -1,5 +1,6 @@
 import git
 import sys
+import re
 from typing import Dict, List, Union
 
 def validate_commits(repo, commit1, commit2):
