@@ -240,6 +240,14 @@ def main():
 
     args = parser.parse_args()
 
+    # List Ollama models if requested
+    if args.list_models:
+        models = list_ollama_models()
+        print("Available Ollama Models:")
+        for model in models:
+            print(f"- {model}")
+        sys.exit(0)
+
     try:
         repo = git.Repo(args.repo)
     except git.exc.InvalidGitRepositoryError:
