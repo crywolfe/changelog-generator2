@@ -15,6 +15,7 @@ setup(
         "pyyaml",
         "semantic-version",
         "black",
+        "requests",  # Added for XAI API calls
     ],
     entry_points={
         "console_scripts": [

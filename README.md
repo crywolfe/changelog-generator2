@@ -105,14 +105,31 @@ changelog-generator HEAD~1 HEAD --model-provider ollama --model-name llama2
 changelog-generator HEAD~1 HEAD --model-provider openai --model-name gpt-4-turbo
 ```
 
-Available OpenAI models include:
+Available AI models:
+
+OpenAI models:
 - `gpt-4`
 - `gpt-4-turbo`
 - `gpt-3.5-turbo`
 
-Available Ollama models can be listed with:
+Ollama models can be listed with:
 ```bash
 changelog-generator --list-models
+```
+
+XAI (Grok) models:
+- `grok-1`
+
+### XAI (Grok) Configuration
+
+To use the XAI Grok model, set the `XAI_API_KEY` in your `.env` file:
+```bash
+echo "XAI_API_KEY=your_xai_api_key_here" >> .env
+```
+
+Example usage:
+```bash
+changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
 ```
 
 ## Arguments

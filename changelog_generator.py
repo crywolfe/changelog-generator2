@@ -154,6 +154,14 @@ def generate_ai_changelog(
     """
     Generate a changelog using an AI model with robust error handling and retries.
 
+    Supported model providers:
+    - ollama
+    - openai
+    - xai (Grok)
+    """
+    """
+    Generate a changelog using an AI model with robust error handling and retries.
+
     Args:
         changes (dict): Detailed changes between commits
         model_provider (str): The AI model provider (openai or ollama)
@@ -201,6 +209,47 @@ def generate_ai_changelog(
 
             return response.choices[0].message.content
 
+        elif model_provider == "xai":
+            import requests
+            import os
+            from dotenv import load_dotenv
+
+            load_dotenv()
+            xai_api_key = os.getenv("XAI_API_KEY")
+            
+            if not xai_api_key:
+                raise ValueError("XAI_API_KEY not found in .env file")
+
+            headers = {
+                "Authorization": f"Bearer {xai_api_key}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+                "model": model_name or "grok-1",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a professional changelog generator.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Generate a changelog for these changes: {changes}",
+                    }
+                ]
+            }
+
+            response = requests.post(
+                "https://api.x.ai/v1/chat/completions", 
+                headers=headers, 
+                json=payload
+            )
+
+            if response.status_code != 200:
+                raise ValueError(f"XAI API error: {response.text}")
+
+            return response.json()['choices'][0]['message']['content']
+
         else:
             raise ValueError(f"Unsupported model provider: {model_provider}")
 
@@ -240,7 +289,7 @@ def main():
     )
     parser.add_argument(
         "--model-provider",
-        choices=["openai", "ollama"],
+        choices=["openai", "ollama", "xai"],
         default="ollama",
         help="AI model provider (default: ollama)",
     )
