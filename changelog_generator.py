@@ -86,9 +86,16 @@ class OllamaLLM:
             print(f"Error generating changelog with Ollama: {e}")
             return f"Unable to generate changelog. Error: {e}"
 
+import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = 'ollama', model_name: str = None) -> str:
     """
-    Generate a changelog using an AI model.
+    Generate a changelog using an AI model with robust error handling and retries.
     
     Args:
         changes (dict): Detailed changes between commits
@@ -97,17 +104,46 @@ def generate_ai_changelog(changes: Dict[str, List[str]], model_provider: str = '
     
     Returns:
         str: AI-generated changelog
+    
+    Raises:
+        ValueError: If an unsupported model provider is specified
+        Exception: For persistent generation failures
     """
-    # Validate model provider
-    if model_provider == 'ollama':
-        if not model_name:
-            model_name = 'llama2'
+    try:
+        # Validate model provider
+        if model_provider == 'ollama':
+            if not model_name:
+                model_name = 'llama2'
+            
+            # Create Ollama LLM instance
+            ollama_llm = OllamaLLM(model=model_name)
+            changelog = ollama_llm.invoke(changes)
+            
+            if not changelog or changelog.startswith("Unable to generate"):
+                raise ValueError("Changelog generation failed")
+            
+            return changelog
         
-        # Create Ollama LLM instance
-        ollama_llm = OllamaLLM(model=model_name)
-        return ollama_llm.invoke(changes)
-    else:
-        raise ValueError(f"Unsupported model provider: {model_provider}")
+        elif model_provider == 'openai':
+            from openai import OpenAI
+            
+            client = OpenAI()
+            response = client.chat.completions.create(
+                model=model_name or "gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a professional changelog generator."},
+                    {"role": "user", "content": f"Generate a changelog for these changes: {changes}"}
+                ]
+            )
+            
+            return response.choices[0].message.content
+        
+        else:
+            raise ValueError(f"Unsupported model provider: {model_provider}")
+    
+    except Exception as e:
+        logger.error(f"Changelog generation error: {e}")
+        raise
 
 def main():
     parser = argparse.ArgumentParser(description='Generate a detailed AI-powered changelog between two Git commits.')

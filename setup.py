@@ -10,6 +10,10 @@ setup(
         'langchain',
         'langchain-community',
         'langchain-openai',
+        'openai',
+        'spacy',
+        'pyyaml',
+        'semantic-version',
     ],
     entry_points={
         'console_scripts': [

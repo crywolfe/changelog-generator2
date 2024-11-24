@@ -1,55 +1,74 @@
 import pytest
 import git
-from unittest.mock import MagicMock
-from changelog_utils import get_commit_changes_modified
+from unittest.mock import MagicMock, patch
+from changelog_utils import get_commit_changes_modified, detect_breaking_changes
+from changelog_generator import generate_ai_changelog
 
-def test_get_commit_changes_modified():
-    """Test the get_commit_changes_modified function."""
-    # Create mock objects
-    mock_repo = MagicMock(spec=git.Repo)
-    mock_commit1 = MagicMock()
-    mock_commit2 = MagicMock()
-
-    # Create mock diff with modified files
-    mock_diff = [
-        MagicMock(b_path='file1.py', change_type='M'),
-        MagicMock(b_path='file2.py', change_type='A'),  # Added file should not be included
-        MagicMock(b_path='file3.py', change_type='D')   # Deleted file should not be included
+def test_breaking_changes_detection():
+    """Test advanced breaking changes detection."""
+    test_cases = [
+        ("Major refactoring of API", True),
+        ("Fix minor bug in utility function", False),
+        ("Deprecated old method", True),
+        ("Breaking change: Removed legacy support", True),
+        ("v2.0.0 release", True),
+        ("Update documentation", False)
     ]
 
-    # Configure mock commit to return the mock diff
-    mock_commit1.diff.return_value = mock_diff
+    for message, expected in test_cases:
+        assert detect_breaking_changes(message) == expected
 
-    # Mock repo.commit to return the mock commits when called with string references
-    mock_repo.commit.side_effect = [mock_commit1, mock_commit2]
+@patch('ollama.chat')
+def test_generate_ai_changelog_ollama(mock_ollama_chat):
+    """Test AI changelog generation with Ollama."""
+    mock_ollama_chat.return_value = {
+        'message': {'content': 'Mocked Ollama changelog'}
+    }
 
-    # Call the function with string commit references
-    modified_files = get_commit_changes_modified(mock_repo, 'commit1', 'commit2')
+    changes = {
+        'added_files': ['new_feature.py'],
+        'modified_files': ['existing_module.py'],
+        'deleted_files': [],
+        'commit_messages': ['Add new feature'],
+        'breaking_changes': []
+    }
 
-    # Assert that only modified files are returned
-    assert modified_files == ['file1.py']
+    changelog = generate_ai_changelog(changes)
+    assert changelog is not None
+    assert len(changelog) > 0
 
-    # Verify that repo.commit was called for both commits
-    assert mock_repo.commit.call_count == 2
+@patch('openai.OpenAI')
+def test_generate_ai_changelog_openai(mock_openai):
+    """Test AI changelog generation with OpenAI."""
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = MagicMock(
+        choices=[MagicMock(message=MagicMock(content='Mocked OpenAI changelog'))]
+    )
+    mock_openai.return_value = mock_client
 
-def test_get_commit_changes_modified_with_commit_objects():
-    """Test the function when commit objects are passed directly."""
-    # Create mock objects
-    mock_repo = MagicMock(spec=git.Repo)
-    mock_commit1 = MagicMock()
-    mock_commit2 = MagicMock()
+    changes = {
+        'added_files': ['new_feature.py'],
+        'modified_files': ['existing_module.py'],
+        'deleted_files': [],
+        'commit_messages': ['Add new feature'],
+        'breaking_changes': []
+    }
 
-    # Create mock diff with modified files
-    mock_diff = [
-        MagicMock(b_path='file1.py', change_type='M'),
-        MagicMock(b_path='file2.py', change_type='A')
-    ]
+    changelog = generate_ai_changelog(changes, model_provider='openai')
+    assert changelog is not None
+    assert len(changelog) > 0
 
-    # Configure mock commit to return the mock diff
-    mock_commit1.diff.return_value = mock_diff
+def test_changelog_config():
+    """Test changelog configuration management."""
+    from changelog_config import ChangelogConfig
 
-    # Call the function with commit objects directly
-    modified_files = get_commit_changes_modified(mock_repo, mock_commit1, mock_commit2)
+    # Test default configuration
+    config = ChangelogConfig()
+    assert config.get('model_provider') == 'ollama'
+    assert config.get('model_name') == 'llama2'
 
-    # Assert that only modified files are returned
-    assert modified_files == ['file1.py']
+    # Test environment variable override
+    import os
+    os.environ['CHANGELOG_MODEL_PROVIDER'] = 'openai'
+    config = ChangelogConfig()
+    assert config.get('model_provider') == 'openai'

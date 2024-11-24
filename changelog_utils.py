@@ -115,17 +115,54 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     changes['commit_messages'] = [commit2.message.strip()]
     
     # Detect breaking changes
+    import spacy
+    import semantic_version
+
+    # Load spaCy model for advanced NLP
+    try:
+        nlp = spacy.load('en_core_web_sm')
+    except OSError:
+        print("Downloading spaCy language model...")
+        spacy.cli.download('en_core_web_sm')
+        nlp = spacy.load('en_core_web_sm')
+
     breaking_keywords = [
-        'breaking', 
-        'breaking change', 
-        'deprecated', 
-        'removed', 
-        'breaking api', 
-        'breaking interface'
+        'breaking', 'breaking change', 'deprecated', 'removed', 
+        'breaking api', 'breaking interface', 'major version', 
+        'incompatible', 'refactored', 'restructured'
     ]
-    
+
+    def detect_breaking_changes(message):
+        """
+        Advanced detection of breaking changes using NLP and semantic analysis.
+        """
+        # Convert message to lowercase for case-insensitive matching
+        message_lower = message.lower()
+
+        # Keyword-based detection
+        if any(keyword in message_lower for keyword in breaking_keywords):
+            return True
+
+        # Semantic version detection in commit messages
+        try:
+            version_match = re.search(r'v?(\d+\.\d+\.\d+)', message)
+            if version_match:
+                version = semantic_version.Version(version_match.group(1))
+                if version.major > 0:  # Major version change
+                    return True
+        except ValueError:
+            pass
+
+        # NLP-based semantic analysis
+        doc = nlp(message)
+        for ent in doc.ents:
+            if ent.label_ in ['ORG', 'PRODUCT'] and any(keyword in ent.text.lower() for keyword in ['api', 'interface']):
+                return True
+
+        return False
+
     for message in changes['commit_messages']:
-        if any(keyword in message.lower() for keyword in breaking_keywords):
+        if detect_breaking_changes(message):
             changes['breaking_changes'].append(message)
     
     return changes
