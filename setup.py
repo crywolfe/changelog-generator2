@@ -14,6 +14,7 @@ setup(
         'spacy',
         'pyyaml',
         'semantic-version',
+        'black',
     ],
     entry_points={
         'console_scripts': [
