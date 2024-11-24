@@ -6,33 +6,59 @@ __pycache__/
 
 # Virtual environments
 .env
-.env/
 .venv/
 venv/
 env/
 changelog_env/
 
 # Distribution / packaging
+.Python/
 dist/
 build/
+pip-wheel-metadata/
 *.egg-info/
 *.egg
+*.eggs/
 
 # IDE and editor files
 .vscode/
 .idea/
-.aider*
+.pyre/
+.python-version
+*.aider*
+.vscode/
+.idea/
+.pyre/
+.python-version
+*.aider*
 
 # Logs and test reports
 *.log
 .coverage
 htmlcov/
 .pytest_cache/
+.hypothesis/
+.pytype/
+.mypy_cache/
 
 # System files
 .DS_Store
+Thumbs.db
 
 # Miscellaneous
+*.pyc
+*.pyo
+*.pyd
 *.so
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+*.exe
 *.manifest
 *.spec
+*.bin
+
+# Jupyter Notebook
+.ipynb_checkpoints/<|eos|>
