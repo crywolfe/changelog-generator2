@@ -114,4 +114,18 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     # Collect only the commit message for the last commit in the range
     changes['commit_messages'] = [commit2.message.strip()]
     
+    # Detect breaking changes
+    breaking_keywords = [
+        'breaking', 
+        'breaking change', 
+        'deprecated', 
+        'removed', 
+        'breaking api', 
+        'breaking interface'
+    ]
+    
+    for message in changes['commit_messages']:
+        if any(keyword in message.lower() for keyword in breaking_keywords):
+            changes['breaking_changes'].append(message)
+    
     return changes
