@@ -50,6 +50,21 @@ def get_commit_changes_modified(repo: git.Repo, commit1: Union[str, git.Commit],
     
     return modified_files
 
+def format_breaking_changes(breaking_changes: List[str]) -> str:
+    """
+    Format breaking changes into a readable string.
+    
+    Args:
+        breaking_changes (List[str]): List of breaking change messages
+    
+    Returns:
+        str: Formatted breaking changes
+    """
+    if not breaking_changes:
+        return "- No breaking changes"
+    
+    return "\n".join([f"- {change}" for change in breaking_changes])
+
 def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     """
     Retrieve changes between two commits.
@@ -75,7 +90,8 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
         'modified_files': [],
         'deleted_files': [],
         'commit_messages': [],
-        'diff_details': []
+        'diff_details': [],
+        'breaking_changes': []  # New section for breaking changes
     }
     
     for change in diff:
