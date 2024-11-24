@@ -4,6 +4,7 @@ import sys
 from typing import Dict, List
 from dotenv import load_dotenv
 import ollama
+import subprocess
 
 # Local imports
 from changelog_utils import (
@@ -11,6 +12,33 @@ from changelog_utils import (
     get_commit_changes,
     format_breaking_changes,
 )
+
+def list_ollama_models():
+    """
+    List available Ollama models.
+
+    Returns:
+        list: Available Ollama model names
+    """
+    try:
+        # Use subprocess to run ollama list command
+        result = subprocess.run(
+            ["ollama", "list"], 
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+        
+        # Parse the output and extract model names
+        models = [
+            line.split()[0] 
+            for line in result.stdout.split('\n')[1:] 
+            if line.strip()
+        ]
+        return models
+    except subprocess.CalledProcessError:
+        print("Error: Could not retrieve Ollama models.")
+        return []
 
 # Load environment variables
 load_dotenv()
@@ -198,8 +226,13 @@ def main():
     )
     parser.add_argument(
         "--model-name",
-        default=None,
-        help="Specific model to use (default: gpt-4-turbo for OpenAI, llama3.2:latest for Ollama)",
+        default="llama3.1:8b",
+        help="Specific Ollama model to use (default: llama3.1:8b)",
+    )
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List available Ollama models",
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
