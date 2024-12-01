@@ -29,10 +29,13 @@ graph TD
     B --> S[Argument Parsing]
 
     %% Legend Descriptions
-    L3[User Interaction] --> L4[CLI Entry Point]
-    L5[Data Source] --> L6[Version Control]
-    L7[AI Providers] --> L8[Language Models]
-    L9[Processing] --> L10[Changelog Generation]
+    subgraph LegendDetails [Legend Details]
+        direction TB
+        L3[Blue: User Interaction] --> L4[How users interact with the system]
+        L5[Green: Data Sources] --> L6[Where data is retrieved from]
+        L7[Red: AI Providers] --> L8[External AI services used]
+        L9[Yellow: Processing] --> L10[Core system transformations]
+    end
     
     style L3 fill:#bbf,stroke:#333,stroke-width:2px
     style L4 fill:#bbf,stroke:#333,stroke-width:2px
@@ -42,3 +45,5 @@ graph TD
     style L8 fill:#fbb,stroke:#333,stroke-width:2px
     style L9 fill:#ff9,stroke:#333,stroke-width:2px
     style L10 fill:#ff9,stroke:#333,stroke-width:2px
+    
+    style LegendDetails fill:#f9f,stroke-dasharray:5
