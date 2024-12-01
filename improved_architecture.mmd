@@ -1,4 +1,13 @@
 graph TD
+    %% Legend
+    subgraph Legend
+        direction LR
+        L1[Component] --> L2[Interaction/Flow]
+        style L1 fill:#f9f,stroke:#333,stroke-width:2px
+        style L2 stroke:#333,stroke-width:2px
+    end
+
+    %% Main Architecture
     A[User] -->|CLI| B[changelog_generator.py]
     B --> C[GitRepoManager]
     B --> D[AIProviderManager]
@@ -18,3 +27,18 @@ graph TD
     B --> Q[Logging]
     B --> R[Retry Mechanism]
     B --> S[Argument Parsing]
+
+    %% Legend Descriptions
+    L3[User Interaction] --> L4[CLI Entry Point]
+    L5[Data Source] --> L6[Version Control]
+    L7[AI Providers] --> L8[Language Models]
+    L9[Processing] --> L10[Changelog Generation]
+    
+    style L3 fill:#bbf,stroke:#333,stroke-width:2px
+    style L4 fill:#bbf,stroke:#333,stroke-width:2px
+    style L5 fill:#bfb,stroke:#333,stroke-width:2px
+    style L6 fill:#bfb,stroke:#333,stroke-width:2px
+    style L7 fill:#fbb,stroke:#333,stroke-width:2px
+    style L8 fill:#fbb,stroke:#333,stroke-width:2px
+    style L9 fill:#ff9,stroke:#333,stroke-width:2px
+    style L10 fill:#ff9,stroke:#333,stroke-width:2px
