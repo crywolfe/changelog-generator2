@@ -9,24 +9,44 @@ graph TD
 
     %% Main Architecture
     A[User] -->|CLI| B[changelog_generator.py]
+    style A fill:#bbf,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+
     B --> C[GitRepoManager]
+    style C fill:#bfb,stroke:#333,stroke-width:2px
     B --> D[AIProviderManager]
+    style D fill:#fbb,stroke:#333,stroke-width:2px
     D --> E[OllamaProvider]
+    style E fill:#fbb,stroke:#333,stroke-width:2px
     D --> F[OpenAIProvider]
+    style F fill:#fbb,stroke:#333,stroke-width:2px
     D --> G[XAIProvider]
+    style G fill:#fbb,stroke:#333,stroke-width:2px
     E --> H[Ollama]
+    style H fill:#fbb,stroke:#333,stroke-width:2px
     F --> I[OpenAI API]
+    style I fill:#fbb,stroke:#333,stroke-width:2px
     G --> J[XAI API]
+    style J fill:#fbb,stroke:#333,stroke-width:2px
     C --> K[Git Repository]
+    style K fill:#bfb,stroke:#333,stroke-width:2px
     K --> L[Commit1]
+    style L fill:#bfb,stroke:#333,stroke-width:2px
     K --> M[Commit2]
+    style M fill:#bfb,stroke:#333,stroke-width:2px
     L --> N[Changes]
+    style N fill:#ff9,stroke:#333,stroke-width:2px
     M --> N
     N --> O[Changelog]
+    style O fill:#ff9,stroke:#333,stroke-width:2px
     O --> P[Output File]
+    style P fill:#ff9,stroke:#333,stroke-width:2px
     B --> Q[Logging]
+    style Q fill:#ff9,stroke:#333,stroke-width:2px
     B --> R[Retry Mechanism]
+    style R fill:#ff9,stroke:#333,stroke-width:2px
     B --> S[Argument Parsing]
+    style S fill:#ff9,stroke:#333,stroke-width:2px
 
     %% Legend Descriptions
     subgraph LegendDetails [Legend Details]
