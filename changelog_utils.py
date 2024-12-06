@@ -20,10 +20,10 @@ def validate_commits(repo, commit1, commit2):
         c1 = repo.commit(commit1)
         c2 = repo.commit(commit2)
         return c1, c2
-    # do you like this exception logic. AI!
-    except git.exc.BadName:
+    except git.exc.BadName as e:
         print(
-            f"Error: One or both commits ({commit1}, {commit2}) do not exist in the repository."
+            f"Error: Invalid commit reference - {e}. "
+            f"Commits ({commit1}, {commit2}) do not exist in the repository."
         )
         sys.exit(1)
 
