@@ -1,7 +1,11 @@
-GitPython
-langchain-openai
-langchain-community
-python-dotenv
-ollama
-spacy
-semantic_version
+# AI Model Providers
+ollama>=0.4.5
+python-dotenv>=1.0.1
+requests>=2.32.3
+
+# Git and Changelog Dependencies
+GitPython>=3.1.44
+langchain-community>=0.3.14
+
+pytest>=8.3.4
+gitpython
