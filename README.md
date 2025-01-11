@@ -28,6 +28,10 @@ source changelog_env/bin/activate  # On Windows, use `changelog_env\Scripts\acti
 
 3. Install dependencies:
 ```bash
+pip install -r requirements.txt
+```
+Alternatively, you can install the dependencies individually:
+```bash
 pip install GitPython langchain-openai langchain-community python-dotenv
 ```
 
