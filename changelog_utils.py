@@ -1,9 +1,7 @@
 import git
 import sys
-import re
 from typing import Dict, List, Union
-import spacy
-import semantic_version
+from ai_provider_manager import AIProviderManager
 
 def validate_commits(repo, commit1, commit2):
     """
@@ -91,65 +89,53 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
             changes["modified_files"].append(change.b_path)
             try:
                 patch = change.diff if isinstance(change.diff, str) else change.diff.decode("utf-8")
-                changes["diff_details"].append({"file": change.b_path, "patch": patch})
+                changes["diff_details"].append({
+                    "file": change.b_path,
+                    "patch": patch
+                })
             except Exception as e:
                 print(f"Could not process diff for {change.b_path}: {e}")
         elif change.change_type == "D":
             changes["deleted_files"].append(change.b_path)
 
-    changes["commit_messages"] = [commit2.message.strip()]
-
-    # Detect breaking changes
-    try:
-        nlp = spacy.load("en_core_web_sm")
-    except OSError:
-        print("Downloading spaCy language model...")
-        spacy.cli.download("en_core_web_sm")
-        nlp = spacy.load("en_core_web_sm")
+    # Collect all commit messages between the two commits
+    changes["commit_messages"] = []
+    for commit in repo.iter_commits(f"{commit1.hexsha}..{commit2.hexsha}"):
+        changes["commit_messages"].append(commit.message.strip())
 
     def detect_breaking_changes(message):
-        message_lower = message.lower()
-        breaking_keywords = [
-            "breaking", "breaking change", "deprecated", "removed", "breaking api",
-            "breaking interface", "major version", "incompatible", "refactored", "restructured",
-            "breaking change:", "breaking changes:", "breaking modification:", "significant change:",
-            "non-backward compatible", "api modification",
-        ]
-
-        if any(keyword in message_lower or message_lower.startswith(keyword) or keyword in message_lower.split() for keyword in breaking_keywords):
-            return True
-
         try:
-            version_match = re.search(r"v?(\d+\.\d+\.\d+)", message)
-            if version_match and semantic_version.Version(version_match.group(1)).major > 0:
-                return True
-        except ValueError:
-            pass
+            # Initialize AI provider with default model
+            ai_provider = AIProviderManager("ollama", "qwen2.5:14b")
+            
+            # Create prompt for breaking change detection
+            prompt = f"""Analyze the following commit message and determine if it contains breaking changes.
+    A breaking change is any modification that requires users to modify their code or configuration to maintain compatibility.
 
-        doc = nlp(message)
-        for sent in doc.sents:
-            for token in sent:
-                if token.pos_ == "VERB" and token.lemma_ in ["remove", "deprecate", "refactor", "restructure", "modify", "change"]:
-                    return True
+    Commit message: {message}
 
-        for ent in doc.ents:
-            if ent.label_ in ["ORG", "PRODUCT", "WORK_OF_ART"] and any(keyword in ent.text.lower() for keyword in ["api", "interface", "library"]):
-                return True
-
-        return False
+    Does this commit contain breaking changes? Respond with only 'Yes' or 'No'."""
+            
+            # Get AI response
+            response = ai_provider.invoke(prompt)
+            
+            # Return True if AI detects breaking changes
+            return response.strip().lower() == "yes"
+        except Exception as e:
+            print(f"Error detecting breaking changes: {e}")
+            return False
 
     for message in changes["commit_messages"]:
         if detect_breaking_changes(message):
             changes["breaking_changes"].append(message)
 
     for diff_detail in changes.get("diff_details", []):
-        if diff_detail.get("patch"):
-            patch = diff_detail["patch"].lower()
-            structural_changes = [
-                "class renamed", "method signature changed", "interface modified",
-                "function removed", "parameter type changed",
-            ]
-            if any(change in patch for change in structural_changes):
-                changes["breaking_changes"].append(f"Structural change in {diff_detail.get('file', 'unknown file')}")
+        patch = diff_detail.get("patch", "").lower()
+        structural_changes = [
+            "class renamed", "method signature changed", "interface modified",
+            "function removed", "parameter type changed",
+        ]
+        if any(change in patch for change in structural_changes):
+            changes["breaking_changes"].append(f"Structural change in {diff_detail.get('file', 'unknown file')}")
 
     return changes
