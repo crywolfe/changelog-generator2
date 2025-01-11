@@ -103,14 +103,14 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     for commit in repo.iter_commits(f"{commit1.hexsha}..{commit2.hexsha}"):
         changes["commit_messages"].append(commit.message.strip())
 
-    def detect_breaking_changes(message):
-        try:
-            # Initialize AI provider with default model
-            ai_provider = AIProviderManager("ollama", "qwen2.5:14b")
-            
-            # Create prompt for breaking change detection
-            prompt = f"""Analyze the following commit message and determine if it contains breaking changes.
-    A breaking change is any modification that requires users to modify their code or configuration to maintain compatibility.
+def detect_breaking_changes(message):
+    try:
+        # Initialize AI provider with default model
+        ai_provider = AIProviderManager("ollama", "qwen2.5:14b")
+        
+        # Create prompt for breaking change detection
+        prompt = f"""Analyze the following commit message and determine if it contains breaking changes.
+A breaking change is any modification that requires users to modify their code or configuration to maintain compatibility.
 
     Commit message: {message}
 
