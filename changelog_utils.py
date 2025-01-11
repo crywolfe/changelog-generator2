@@ -123,11 +123,12 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
             return response.strip().lower() == "yes"
         except Exception as e:
             print(f"Error detecting breaking changes: {e}")
-            return False
-
-    for message in changes["commit_messages"]:
-        if detect_breaking_changes(message):
-            changes["breaking_changes"].append(message)
+       return False
+    
+    
+   for message in changes["commit_messages"]:
+       if detect_breaking_changes(message):
+           changes["breaking_changes"].append(message)
 
     for diff_detail in changes.get("diff_details", []):
         patch = diff_detail.get("patch", "").lower()
