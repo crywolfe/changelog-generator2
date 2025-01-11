@@ -4,8 +4,7 @@ from typing import Dict, Any
 
 DEFAULT_CONFIG = {
     "model_provider": "ollama",
-    "model_name": "llama3.2:latest",
-    "openai_api_key": None,
+    "model_name": "qwen2.5:14b",
     "verbose": False,
     "output_format": "markdown",
     "breaking_change_detection": {
@@ -37,7 +36,6 @@ class ChangelogConfig:
         env_mappings = {
             "CHANGELOG_MODEL_PROVIDER": "model_provider",
             "CHANGELOG_MODEL_NAME": "model_name",
-            "CHANGELOG_OPENAI_API_KEY": "openai_api_key",
             "CHANGELOG_VERBOSE": "verbose",
         }
 

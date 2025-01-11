@@ -1,3 +1,56 @@
+## Configuration
+
+The changelog generator can be configured using the `ChangelogConfig` class or environment variables. Here are the available configuration options:
+
+### Configuration Class Options
+
+- `model_provider`: The AI provider to use (default: "ollama")
+  - Supported providers: "ollama", "xai"
+- `model_name`: Optional specific model name
+- `output_format`: Format of the generated changelog (default: "markdown")
+- `output_directory`: Directory to save the changelog (default: current directory)
+- `max_changelog_entries`: Maximum number of entries to include (default: 50)
+
+### Environment Variable Configuration
+
+For Ollama models, you can set the model using an environment variable:
+
+- `OLLAMA_MODEL`: Specify the Ollama model to use
+  - Example: `export OLLAMA_MODEL=llama3:latest`
+
+### Examples
+
+#### Using ChangelogConfig
+```python
+from changelog_config import ChangelogConfig
+
+# Use a specific Ollama model
+config = ChangelogConfig(
+    model_provider="ollama", 
+    model_name="qwen2.5:14b"
+)
+
+# Or use the default with environment variable configuration
+config = ChangelogConfig(model_provider="ollama")
+```
+
+#### Environment Variable Configuration
+```bash
+# Set Ollama model via environment variable
+export OLLAMA_MODEL=qwen2.5:14b
+```
+
+or use .env
+To configure the application, create a `.env` file with the following variables:
+
+```env
+OLLAMA_MODEL=qwen2.5:14b
+XAI_MODEL=grok-2
+OUTPUT_FILE=CHANGELOG_DEFAULT.md
+XAI_API_KEY=your_api_key_here
+```
+Make sure to replace `your_api_key_here` with your actual API key for `XAI_API_KEY`.
+
 # Git Changelog Generator
 
 ## Overview
@@ -8,23 +61,20 @@ This Python script generates a detailed changelog between two Git commits, helpi
 
 - Python 3.7+
 - GitPython library
-- OpenAI API Key
-- Langchain
+- Langchain Community
 - python-dotenv
-- Ollama Client
+- Ollama
 
 ## Installation
 
-### Prerequisites
-
-1. **Ollama Client:**
+1. **Ollama Client**
    - Ensure that the Ollama client is installed on your system. You can install it using pip:
 
      ```bash
      pip install ollama
      ```
 
-2. **Python Packages:**
+2. **Python Packages**
 
 Install the required Python packages:
 
@@ -32,43 +82,13 @@ Install the required Python packages:
 pip install -r requirements.txt
 ```
 
-Alternatively, you can install the dependencies individually:
-
-```bash
-pip install GitPython langchain-openai langchain-community python-dotenv ollama
-```
-
-3. **Optional: Set up Ollama**
+1. **Optional: Set up Ollama**
 
 ```bash
 # Install Ollama from https://ollama.com/
 # Pull a model, e.g.:
 ollama pull llama2
 ```
-
-4. **Set up OpenAI API Key (if using OpenAI):**
-
-There are two ways to configure your OpenAI API key:
-
-a. **Using a `.env` file (Recommended):**
-
-```bash
-# Create a .env file in your project directory
-echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
-```
-
-b. **Using an environment variable:**
-
-```bash
-# Set the OpenAI API key in your shell
-export CHANGELOG_OPENAI_API_KEY=your_openai_api_key_here
-
-# Or set it inline when running the script
-CHANGELOG_OPENAI_API_KEY=your_openai_api_key_here changelog-generator HEAD~1 HEAD --model-provider openai
-```
-
-Note: You can obtain an API key from the [OpenAI Platform](https://platform.openai.com/api-keys).
-Always keep your API key confidential and never commit it to version control.
 
 ## Project Structure
 
@@ -111,22 +131,17 @@ python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
 ```
 
-5. **Use Ollama or OpenAI with a specific model:**
+5. **Use Ollama or XAI with a specific model:**
 
 ```bash
 # Ollama model selection
 changelog-generator HEAD~1 HEAD --model-provider ollama --model-name llama2
 
-# OpenAI model selection
-changelog-generator HEAD~1 HEAD --model-provider openai --model-name gpt-4-turbo
+# XAI model selection
+changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-2
 ```
 
 Available AI models:
-
-- **OpenAI models:**
-  - `gpt-4`
-  - `gpt-4-turbo`
-  - `gpt-3.5-turbo`
 
 - **Ollama models can be listed with:**
 
@@ -148,7 +163,7 @@ echo "XAI_API_KEY=your_xai_api_key_here" >> .env
 Example usage:
 
 ```bash
-changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
+changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-2
 ```
 
 ## Arguments
@@ -156,8 +171,8 @@ changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
 - `commit1`: First commit hash or reference
 - `commit2`: Second commit hash or reference
 - `--repo`: Optional path to the Git repository (default is current directory)
-- `--model-provider`: AI model provider (openai, ollama, or xai, default is ollama)
-- `--model-name`: Specific model to use (default: qwen2.5:14b for Ollama, gpt-4-turbo for OpenAI)
+- `--model-provider`: AI model provider (ollama or xai, default is ollama)
+- `--model-name`: Specific model to use (default: qwen2.5:14b for Ollama)
 - `--list-models`: List available Ollama models
 - `--verbose`: Enable verbose logging
 
@@ -176,4 +191,24 @@ changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
 
 ## License
 
-[Specify your license here]
+[MIT License]
+
+Copyright (c) 2025 Gerry Wolfe
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -38,7 +38,6 @@ def generate_ai_changelog(
 
     Supported model providers:
     - ollama
-    - openai
     - xai (Grok)
     """
     try:
@@ -85,7 +84,7 @@ def main():
     )
     parser.add_argument(
         "--model-provider",
-        choices=["openai", "ollama", "xai"],
+        choices=["ollama", "xai"],
         default="ollama",
         help="AI model provider (default: ollama)",
     )
@@ -145,9 +144,7 @@ def main():
     # Generate AI-powered changelog
     try:
         # Use the model name from arguments or set a default
-        model_name = args.model_name or (
-            "llama3.1:latest" if args.model_provider == "ollama" else "gpt-4-turbo"
-        )
+        model_name = args.model_name or "qwen2.5:14b"
 
         formatted_breaking_changes = format_breaking_changes(changes['breaking_changes'])
         ai_changelog = generate_ai_changelog(

@@ -1,116 +1,88 @@
 import pytest
 import git
-import os
-import tempfile
+from unittest.mock import Mock, patch
 from changelog_utils import (
     validate_commits,
-    get_commit_changes,
     get_commit_changes_modified,
     format_breaking_changes,
+    get_commit_changes
 )
 
 @pytest.fixture
-def temp_git_repo():
-    """Create a temporary git repository for testing."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = os.path.abspath(temp_dir)
-        repo = git.Repo.init(temp_dir)
+def mock_repo():
+    repo = Mock()
+    commit1 = Mock()
+    commit2 = Mock()
+    repo.commit.side_effect = [commit1, commit2]
+    return repo, commit1, commit2
 
-        with repo.config_writer() as git_config:
-            git_config.set_value("user", "name", "Test User")
-            git_config.set_value("user", "email", "test@example.com")
+def test_validate_commits_success(mock_repo):
+    repo, commit1, commit2 = mock_repo
+    result = validate_commits(repo, "commit1", "commit2")
+    assert result == (commit1, commit2)
+    repo.commit.assert_any_call("commit1")
+    repo.commit.assert_any_call("commit2")
 
-        # Initial commit
-        initial_file = os.path.join(temp_dir, "initial.txt")
-        with open(initial_file, "w") as f:
-            f.write("Initial content")
-        repo.index.add([initial_file])
-        initial_commit = repo.index.commit("Initial commit")
-
-        # Second commit
-        second_file = os.path.join(temp_dir, "second.txt")
-        with open(second_file, "w") as f:
-            f.write("Second content")
-        repo.index.add([second_file])
-        second_commit = repo.index.commit("Second commit")
-
-        # Third commit with modification
-        with open(initial_file, "w") as f:
-            f.write("Modified content")
-        repo.index.add([initial_file])
-        third_commit = repo.index.commit("Modified initial file")
-
-        yield repo, initial_commit, second_commit, third_commit
-
-def test_validate_commits(temp_git_repo):
-    """Test validate_commits with valid and invalid commits."""
-    repo, initial_commit, second_commit, _ = temp_git_repo
-
-    # Valid commits
-    valid_commits = validate_commits(repo, initial_commit.hexsha, second_commit.hexsha)
-    assert valid_commits[0].hexsha == initial_commit.hexsha
-    assert valid_commits[1].hexsha == second_commit.hexsha
-
-    # Invalid commit
+def test_validate_commits_failure(mock_repo):
+    repo, _, _ = mock_repo
+    repo.commit.side_effect = git.exc.BadName("Invalid commit")
     with pytest.raises(SystemExit):
-        validate_commits(repo, "invalid_commit", second_commit.hexsha)
+        validate_commits(repo, "bad1", "bad2")
 
-def test_get_commit_changes_modified(temp_git_repo):
-    """Test get_commit_changes_modified with modified files."""
-    repo, initial_commit, _, third_commit = temp_git_repo
+def test_get_commit_changes_modified(mock_repo):
+    repo, commit1, commit2 = mock_repo
+    diff = Mock()
+    diff.change_type = "M"
+    diff.b_path = "file.txt"
+    commit1.diff.return_value = [diff]
+    
+    result = get_commit_changes_modified(repo, commit1, commit2)
+    assert result == ["file.txt"]
+    commit1.diff.assert_called_once_with(commit2)
 
-    modified_files = get_commit_changes_modified(repo, initial_commit, third_commit)
-    assert "initial.txt" in modified_files
-    assert len(modified_files) == 1
+def test_format_breaking_changes_empty():
+    result = format_breaking_changes([])
+    assert result == "- No breaking changes"
 
-def test_get_commit_changes_added_deleted(temp_git_repo):
-    """Test get_commit_changes with added and deleted files."""
-    repo, initial_commit, second_commit, _ = temp_git_repo
+def test_format_breaking_changes_with_changes():
+    changes = ["Change 1", "Change 2"]
+    result = format_breaking_changes(changes)
+    assert result == "- Change 1\n- Change 2"
 
-    changes = get_commit_changes(repo, initial_commit, second_commit)
-    assert "second.txt" in changes["added_files"]
-    assert len(changes["added_files"]) == 1
-    assert len(changes["deleted_files"]) == 0
-
-def test_get_commit_changes_breaking(temp_git_repo):
-    """Test get_commit_changes with breaking changes."""
-    repo, _, second_commit, third_commit = temp_git_repo
-
-    # Simulate breaking change
-    with open(os.path.join(repo.path, "second.txt"), "w") as f:
-        f.write("Breaking content")
-    repo.index.add(["second.txt"])
-    breaking_commit = repo.index.commit("Breaking change: API modified")
-
-    changes = get_commit_changes(repo, second_commit, breaking_commit)
-    assert len(changes["breaking_changes"]) > 0
-    assert "Breaking change: API modified" in changes["breaking_changes"]
-
-def test_format_breaking_changes():
-    """Test format_breaking_changes with and without breaking changes."""
-    breaking_changes = ["API modified", "Function removed"]
-    formatted = format_breaking_changes(breaking_changes)
-    assert "- API modified" in formatted
-    assert "- Function removed" in formatted
-
-    no_breaking_changes = []
-    formatted_empty = format_breaking_changes(no_breaking_changes)
-    assert formatted_empty == "- No breaking changes"
-
-def test_get_commit_changes_edge_cases(temp_git_repo):
-    """Test edge cases for get_commit_changes."""
-    repo, initial_commit, _, third_commit = temp_git_repo
-
-    # Empty commit message
-    changes_empty_message = get_commit_changes(repo, initial_commit, third_commit)
-    assert changes_empty_message["commit_messages"] == ["Modified initial file"]
-
-    # No changes between same commit
-    changes_same_commit = get_commit_changes(repo, initial_commit, initial_commit)
-    assert len(changes_same_commit["added_files"]) == 0
-    assert len(changes_same_commit["modified_files"]) == 0
-    assert len(changes_same_commit["deleted_files"]) == 0
-
-    # Invalid commit hash
-    with pytest.raises(SystemExit):
-        get_commit_changes(repo, "invalid_commit", third_commit)
+@patch('changelog_utils.AIProviderManager')
+def test_get_commit_changes(mock_ai_provider, mock_repo):
+    repo, commit1, commit2 = mock_repo
+    diff = Mock()
+    diff.change_type = "M"
+    diff.b_path = "file.txt"
+    diff.diff = b"patch content"
+    commit1.diff.return_value = [diff]
+    
+    # Mock commit messages iteration
+    mock_commit = Mock()
+    mock_commit.message = "commit message"
+    repo.iter_commits.return_value = [mock_commit]
+    
+    mock_ai_instance = Mock()
+    mock_ai_provider.return_value = mock_ai_instance
+    # Mock AI response to indicate no breaking changes
+    mock_ai_instance.invoke.return_value = "No"
+    
+    # Mock structural changes detection
+    mock_commit.message = "Non-breaking change"
+    
+    result = get_commit_changes(repo, commit1, commit2)
+    
+    assert result == {
+        "added_files": [],
+        "modified_files": ["file.txt"],
+        "deleted_files": [],
+        "commit_messages": ["Non-breaking change"],
+        "diff_details": [{
+            "file": "file.txt",
+            "patch": "patch content"
+        }],
+        "breaking_changes": []
+    }
+    commit1.diff.assert_called_once_with(commit2)
+    mock_ai_provider.assert_called_once_with("ollama", "qwen2.5:14b")

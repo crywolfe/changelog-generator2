@@ -1,73 +1,69 @@
 from typing import Dict, List
 from dotenv import load_dotenv
 import ollama
-import subprocess
-from openai import OpenAI
 import requests
 import os
 
+
 class AIProviderManager:
     def __init__(self, model_provider: str, model_name: str = None):
+        load_dotenv()
         self.model_provider = model_provider
         self.model_name = model_name or self._get_default_model_name()
+        self.invoke_methods = {
+            "ollama": self._invoke_ollama,
+            "xai": self._invoke_xai,
+        }
 
-    def _get_default_model_name(self):
-        if self.model_provider == "ollama":
-            return "llama3.1:latest"
-        elif self.model_provider == "openai":
-            return "gpt-4"
-        elif self.model_provider == "xai":
-            return "grok-1"
-        else:
-            raise ValueError(f"Unsupported model provider: {self.model_provider}")
+    def _get_default_model_name(self) -> str:
+        model_mapping = {
+            "ollama": os.getenv("OLLAMA_MODEL", "qwen2.5:14b"),
+            "xai": os.getenv("XAI_MODEL", "grok-2"),
+        }
+        return model_mapping.get(self.model_provider, "Unsupported model provider")
+
+    def _generate_messages(self, changes: Dict[str, List[str]]) -> List[Dict[str, str]]:
+        return [
+            {
+                "role": "system",
+                "content": "You are a professional changelog generator. Your task is to create clear, concise, and well-structured changelog entries based on provided updates, commits, or pull requests. Ensure each entry is categorized by type (e.g., Added, Fixed, Changed, Deprecated, Removed, Breaking Changes, etc.) and formatted consistently using markdown syntax. Include file names, commit messages, and a brief summary of the changes in each entry. Focus on readability and relevance for a technical software engineering audience. Output the changelog in markdown format.",
+            },
+            {
+                "role": "user",
+                "content": f"Generate a detailed and concise changelog for the following changes categorized by type (e.g., Added, Fixed, Changed, Deprecated, Removed, Breaking Changes, etc.): {changes}",
+            },
+        ]
 
     def invoke(self, changes: Dict[str, List[str]]) -> str:
-        if self.model_provider == "ollama":
-            return self._invoke_ollama(changes)
-        elif self.model_provider == "openai":
-            return self._invoke_openai(changes)
-        elif self.model_provider == "xai":
-            return self._invoke_xai(changes)
-        else:
+        if not changes or not isinstance(changes, dict):
+            raise ValueError(
+                "Invalid changes format. Expected a dictionary with change categories."
+            )
+
+        invoke_method = self.invoke_methods.get(self.model_provider)
+        if not invoke_method:
             raise ValueError(f"Unsupported model provider: {self.model_provider}")
 
-    def _invoke_ollama(self, changes: Dict[str, List[str]]) -> str:
         try:
-            prompt = self._create_changelog_prompt(changes)
-            response = ollama.chat(
-                model=self.model_name,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a professional software changelog generator.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-            )
-            return response["message"]["content"]
-        except Exception as e:
-            print(f"Error generating changelog with Ollama: {e}")
-            return f"Unable to generate changelog. Error: {e}"
+            return invoke_method(changes)
+        except (ValueError, requests.exceptions.RequestException, Exception) as e:
+            print(f"Error in {self.model_provider} provider: {str(e)}")
+            raise
 
-    def _invoke_openai(self, changes: Dict[str, List[str]]) -> str:
-        client = OpenAI()
-        response = client.chat.completions.create(
-            model=self.model_name,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a professional changelog generator.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Generate a changelog for these changes: {changes}",
-                },
-            ],
+    def _invoke_ollama(self, changes: Dict[str, List[str]]) -> str:
+        response = ollama.chat(
+            model=self.model_name, messages=self._generate_messages(changes)
         )
-        return response.choices[0].message.content
+        # Print the response object to inspect its structure
+        print(f"Ollama Response: {response.__dict__}")
+
+        # Access the content from the nested message attribute
+        if hasattr(response, "message") and hasattr(response.message, "content"):
+            return response.message.content
+        else:
+            raise ValueError("Unexpected response format from Ollama")
 
     def _invoke_xai(self, changes: Dict[str, List[str]]) -> str:
-        load_dotenv()
         xai_api_key = os.getenv("XAI_API_KEY")
         if not xai_api_key:
             raise ValueError("XAI_API_KEY not found in .env file")
@@ -79,16 +75,7 @@ class AIProviderManager:
 
         payload = {
             "model": self.model_name,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a professional changelog generator.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Generate a changelog for these changes: {changes}",
-                },
-            ],
+            "messages": self._generate_messages(changes),
         }
 
         response = requests.post(
@@ -99,43 +86,3 @@ class AIProviderManager:
             raise ValueError(f"XAI API error: {response.text}")
 
         return response.json()["choices"][0]["message"]["content"]
-
-    def _create_changelog_prompt(self, changes: Dict[str, List[str]]) -> str:
-        prompt = "Generate a comprehensive changelog based on the following commit changes:\n\n"
-
-        # Added Files
-        if changes["added_files"]:
-            prompt += "New Files Added:\n"
-            for file in changes["added_files"]:
-                prompt += f"- {file}\n"
-
-        # Modified Files
-        if changes["modified_files"]:
-            prompt += "\nModified Files:\n"
-            for file in changes["modified_files"]:
-                prompt += f"- {file}\n"
-
-        # Deleted Files
-        if changes["deleted_files"]:
-            prompt += "\nDeleted Files:\n"
-            for file in changes["deleted_files"]:
-                prompt += f"- {file}\n"
-
-        # Breaking Changes
-        if changes["breaking_changes"]:
-            prompt += "\nBreaking Changes:\n"
-            for change in changes["breaking_changes"]:
-                prompt += f"- {change}\n"
-
-        # Commit Messages
-        if changes["commit_messages"]:
-            prompt += "\nCommit Messages:\n"
-            for msg in changes["commit_messages"]:
-                prompt += f"- {msg}\n"
-
-        prompt += (
-            "\nPlease generate a detailed, professional changelog that highlights key changes, "
-            "new features, bug fixes, and any breaking changes. Use markdown formatting."
-        )
-
-        return prompt

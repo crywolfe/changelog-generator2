@@ -7,15 +7,10 @@ setup(
     install_requires=[
         "gitpython",
         "python-dotenv",
-        "langchain",
         "langchain-community",
-        "langchain-openai",
-        "openai",
-        "spacy",
         "pyyaml",
-        "semantic-version",
         "black",
-        "requests",  # Added for XAI API calls
+        "requests",  # Added for XAI and other future API calls
     ],
     entry_points={
         "console_scripts": [

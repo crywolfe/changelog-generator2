@@ -103,14 +103,14 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     for commit in repo.iter_commits(f"{commit1.hexsha}..{commit2.hexsha}"):
         changes["commit_messages"].append(commit.message.strip())
 
-def detect_breaking_changes(message):
-    try:
-        # Initialize AI provider with default model
-        ai_provider = AIProviderManager("ollama", "qwen2.5:14b")
-        
-        # Create prompt for breaking change detection
-        prompt = f"""Analyze the following commit message and determine if it contains breaking changes.
-A breaking change is any modification that requires users to modify their code or configuration to maintain compatibility.
+    def detect_breaking_changes(message):
+        try:
+            # Initialize AI provider with default model
+            ai_provider = AIProviderManager("ollama", "qwen2.5:14b")
+            
+            # Create prompt for breaking change detection
+            prompt = f"""Analyze the following commit message and determine if it contains breaking changes.
+    A breaking change is any modification that requires users to modify their code or configuration to maintain compatibility.
 
     Commit message: {message}
 
@@ -119,16 +119,15 @@ A breaking change is any modification that requires users to modify their code o
             # Get AI response
             response = ai_provider.invoke(prompt)
             
-            # Return True if AI detects breaking changes
+            # Return True only if AI response is "Yes"
             return response.strip().lower() == "yes"
         except Exception as e:
             print(f"Error detecting breaking changes: {e}")
-       return False
-    
-    
-   for message in changes["commit_messages"]:
-       if detect_breaking_changes(message):
-           changes["breaking_changes"].append(message)
+            return False
+
+    for message in changes["commit_messages"]:
+        if detect_breaking_changes(message):
+            changes["breaking_changes"].append(message)
 
     for diff_detail in changes.get("diff_details", []):
         patch = diff_detail.get("patch", "").lower()
@@ -138,5 +137,6 @@ A breaking change is any modification that requires users to modify their code o
         ]
         if any(change in patch for change in structural_changes):
             changes["breaking_changes"].append(f"Structural change in {diff_detail.get('file', 'unknown file')}")
+
 
     return changes
