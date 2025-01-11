@@ -13,7 +13,7 @@ class AIProviderManager:
 
     def _get_default_model_name(self):
         if self.model_provider == "ollama":
-            return "llama3.2:latest"
+            return "llama3.1:latest"
         elif self.model_provider == "openai":
             return "gpt-4"
         elif self.model_provider == "xai":
@@ -74,7 +74,7 @@ class AIProviderManager:
 
         headers = {
             "Authorization": f"Bearer {xai_api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         payload = {
@@ -87,20 +87,18 @@ class AIProviderManager:
                 {
                     "role": "user",
                     "content": f"Generate a changelog for these changes: {changes}",
-                }
-            ]
+                },
+            ],
         }
 
         response = requests.post(
-            "https://api.x.ai/v1/chat/completions", 
-            headers=headers, 
-            json=payload
+            "https://api.x.ai/v1/chat/completions", headers=headers, json=payload
         )
 
         if response.status_code != 200:
             raise ValueError(f"XAI API error: {response.text}")
 
-        return response.json()['choices'][0]['message']['content']
+        return response.json()["choices"][0]["message"]["content"]
 
     def _create_changelog_prompt(self, changes: Dict[str, List[str]]) -> str:
         prompt = "Generate a comprehensive changelog based on the following commit changes:\n\n"

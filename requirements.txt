@@ -2,3 +2,6 @@ GitPython
 langchain-openai
 langchain-community
 python-dotenv
+ollama
+spacy
+semantic_version

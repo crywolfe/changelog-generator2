@@ -11,48 +11,54 @@ This Python script generates a detailed changelog between two Git commits, helpi
 - OpenAI API Key
 - Langchain
 - python-dotenv
+- Ollama Client
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone <your-repository-url>
-cd <repository-directory>
-```
+### Prerequisites
 
-2. Create a virtual environment (optional but recommended):
-```bash
-python3 -m venv changelog_env
-source changelog_env/bin/activate  # On Windows, use `changelog_env\Scripts\activate`
-```
+1. **Ollama Client:**
+   - Ensure that the Ollama client is installed on your system. You can install it using pip:
 
-3. Install dependencies:
+     ```bash
+     pip install ollama
+     ```
+
+2. **Python Packages:**
+
+Install the required Python packages:
+
 ```bash
 pip install -r requirements.txt
 ```
+
 Alternatively, you can install the dependencies individually:
+
 ```bash
-pip install GitPython langchain-openai langchain-community python-dotenv
+pip install GitPython langchain-openai langchain-community python-dotenv ollama
 ```
 
-4. Optional: Set up Ollama
+3. **Optional: Set up Ollama**
+
 ```bash
 # Install Ollama from https://ollama.com/
 # Pull a model, e.g.:
 ollama pull llama2
 ```
 
-5. Set up OpenAI API Key (if using OpenAI):
+4. **Set up OpenAI API Key (if using OpenAI):**
 
 There are two ways to configure your OpenAI API key:
 
-a. Using a `.env` file (Recommended):
+a. **Using a `.env` file (Recommended):**
+
 ```bash
 # Create a .env file in your project directory
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
 
-b. Using an environment variable:
+b. **Using an environment variable:**
+
 ```bash
 # Set the OpenAI API key in your shell
 export CHANGELOG_OPENAI_API_KEY=your_openai_api_key_here
@@ -74,33 +80,39 @@ Always keep your API key confidential and never commit it to version control.
 ### Basic Usage
 
 Generate a changelog between two commits:
+
 ```bash
 python changelog_generator.py <commit1> <commit2>
 ```
 
 ### Examples
 
-1. Compare the last 5 commits with the current HEAD:
+1. **Compare the last 5 commits with the current HEAD:**
+
 ```bash
 python changelog_generator.py HEAD~5 HEAD
 ```
 
-2. Compare specific commit hashes:
+2. **Compare specific commit hashes:**
+
 ```bash
 python changelog_generator.py abc1234 def5678
 ```
 
-3. Specify a different repository path:
+3. **Specify a different repository path:**
+
 ```bash
 python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
 ```
 
-4. Generate changelog with custom output file:
+4. **Generate changelog with custom output file:**
+
 ```bash
 python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
 ```
 
-5. Use Ollama or OpenAI with a specific model:
+5. **Use Ollama or OpenAI with a specific model:**
+
 ```bash
 # Ollama model selection
 changelog-generator HEAD~1 HEAD --model-provider ollama --model-name llama2
@@ -111,27 +123,30 @@ changelog-generator HEAD~1 HEAD --model-provider openai --model-name gpt-4-turbo
 
 Available AI models:
 
-OpenAI models:
-- `gpt-4`
-- `gpt-4-turbo`
-- `gpt-3.5-turbo`
+- **OpenAI models:**
+  - `gpt-4`
+  - `gpt-4-turbo`
+  - `gpt-3.5-turbo`
 
-Ollama models can be listed with:
+- **Ollama models can be listed with:**
+
 ```bash
 changelog-generator --list-models
 ```
 
-XAI (Grok) models:
-- `grok-1`
+- **XAI (Grok) models:**
+  - `grok-1`
 
 ### XAI (Grok) Configuration
 
 To use the XAI Grok model, set the `XAI_API_KEY` in your `.env` file:
+
 ```bash
 echo "XAI_API_KEY=your_xai_api_key_here" >> .env
 ```
 
 Example usage:
+
 ```bash
 changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
 ```
@@ -141,8 +156,10 @@ changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-1
 - `commit1`: First commit hash or reference
 - `commit2`: Second commit hash or reference
 - `--repo`: Optional path to the Git repository (default is current directory)
-- `--model-provider`: AI model provider (openai or ollama, default is openai)
-- `--model-name`: Specific model to use (default: gpt-4-turbo for OpenAI, llama2 for Ollama)
+- `--model-provider`: AI model provider (openai, ollama, or xai, default is ollama)
+- `--model-name`: Specific model to use (default: qwen2.5:14b for Ollama, gpt-4-turbo for OpenAI)
+- `--list-models`: List available Ollama models
+- `--verbose`: Enable verbose logging
 
 ## Troubleshooting
 

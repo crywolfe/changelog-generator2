@@ -1,18 +1,22 @@
 import argparse
-import git
-import sys
-from typing import Dict, List
-from dotenv import load_dotenv
 import logging
+import sys
+from datetime import datetime
+from typing import Dict, List
+
+import git
+import ollama  # Ensure ollama is imported
+from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+from ai_provider_manager import AIProviderManager
 
 # Local imports
 from changelog_utils import (
-    validate_commits,
-    get_commit_changes,
     format_breaking_changes,
+    get_commit_changes,
+    validate_commits,
 )
-from ai_provider_manager import AIProviderManager
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +25,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def generate_ai_changelog(
@@ -50,6 +55,16 @@ def generate_ai_changelog(
         logger.error(f"Changelog generation error: {e}")
         raise
 
+
+def _list_ollama_models():
+    try:
+        response = ollama.models.list()
+        return [model.name for model in response.models]
+    except Exception as e:
+        logger.error(f"Error listing Ollama models: {e}")
+        raise
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate a detailed AI-powered changelog between two Git commits."
@@ -61,11 +76,12 @@ def main():
         default=".",
         help="Path to the Git repository (default: current directory)",
     )
+    
     parser.add_argument(
         "--output",
         "-o",
-        default="CHANGELOG.md",
-        help="Output file for the generated changelog (default: CHANGELOG.md)",
+        default=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+        help="Output file for the generated changelog (default: CHANGELOG[date_time].md)",
     )
     parser.add_argument(
         "--model-provider",
@@ -91,23 +107,25 @@ def main():
 
     # List Ollama models if requested
     if args.list_models:
-        models = list_ollama_models()
-        print("Available Ollama Models:")
+        models = _list_ollama_models()
+        logger.info("Available Ollama Models:")
         for model in models:
-            print(f"- {model}")
+            logger.info(f"- {model}")
         sys.exit(0)
 
     try:
         repo = git.Repo(args.repo)
     except git.exc.InvalidGitRepositoryError:
-        print(f"Error: {args.repo} is not a valid Git repository.")
+        logger.error(f"Error: {args.repo} is not a valid Git repository.")
         sys.exit(1)
 
     # Validate and get commits
     try:
         commit1, commit2 = validate_commits(repo, args.commit1, args.commit2)
+        logger.info(f"Commit 1: {commit1.hexsha[:7]} - {commit1.message.strip()}")
+        logger.info(f"Commit 2: {commit2.hexsha[:7]} - {commit2.message.strip()}")
     except Exception as e:
-        print(f"Commit validation error: {e}")
+        logger.error(f"Commit validation error: {e}")
         sys.exit(1)
 
     # Get changes between commits
@@ -115,25 +133,27 @@ def main():
         changes = get_commit_changes(repo, commit1, commit2)
 
         if args.verbose:
-            print("Detected Changes:")
-            print(f"Added Files: {changes['added_files']}")
-            print(f"Modified Files: {changes['modified_files']}")
-            print(f"Deleted Files: {changes['deleted_files']}")
-            print(f"Breaking Changes: {changes['breaking_changes']}")
+            logger.info("Detected Changes:")
+            logger.info(f"Added Files: {changes['added_files']}")
+            logger.info(f"Modified Files: {changes['modified_files']}")
+            logger.info(f"Deleted Files: {changes['deleted_files']}")
+            logger.info(f"Breaking Changes: {changes['breaking_changes']}")
     except Exception as e:
-        print(f"Error retrieving commit changes: {e}")
+        logger.error(f"Error retrieving commit changes: {e}")
         sys.exit(1)
 
     # Generate AI-powered changelog
     try:
         # Use the model name from arguments or set a default
         model_name = args.model_name or (
-            "llama3.2:latest" if args.model_provider == "ollama" else "gpt-4-turbo"
+            "llama3.1:latest" if args.model_provider == "ollama" else "gpt-4-turbo"
         )
 
+        formatted_breaking_changes = format_breaking_changes(changes['breaking_changes'])
         ai_changelog = generate_ai_changelog(
             changes, model_provider=args.model_provider, model_name=model_name
         )
+        ai_changelog = f"# Breaking Changes\n{formatted_breaking_changes}\n\n{ai_changelog}"
 
         # Write changelog to file
         with open(args.output, "w") as f:
@@ -142,16 +162,17 @@ def main():
             )
             f.write(ai_changelog)
 
-        print(f"Changelog generated and saved to {args.output}")
-        print(f"\nChangelog generated using {args.model_provider}/{model_name}")
+        logger.info(f"Changelog generated and saved to {args.output}")
+        logger.info(f"\nChangelog generated using {args.model_provider}/{model_name}")
 
         if args.verbose:
-            print("\nChangelog Preview:")
-            print(ai_changelog)
+            logger.info("\nChangelog Preview:")
+            logger.info(ai_changelog)
 
     except Exception as e:
-        print(f"Error generating AI changelog: {e}")
+        logger.error(f"Error generating AI changelog: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
