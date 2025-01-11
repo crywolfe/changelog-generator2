@@ -8,4 +8,3 @@ GitPython>=3.1.44
 langchain-community>=0.3.14
 
 pytest>=8.3.4
-gitpython
