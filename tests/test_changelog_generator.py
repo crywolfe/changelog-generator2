@@ -102,12 +102,11 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         commit1="commit1",
         commit2="commit2",
-         repo=".",
--        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+        repo=".",
 +        output=output_file,
-         model_provider="ollama",
-         model_name="qwen2.5:14b",
-         list_models=False,
+        model_provider="ollama",
+        model_name="qwen2.5:14b",
+        list_models=False,
          verbose=False
      )):
 +        mock_ai_provider.invoke.return_value = "Mocked changelog content"
