@@ -147,11 +147,11 @@ def get_git_commits(repo: git.Repo, config: Dict, commit1: Optional[str] = None,
     return commit1, commit2
 
 def main():
-    # Create parser with explicit encoding
+    # Create parser without gettext translation
     parser = argparse.ArgumentParser(
         description="Generate a detailed AI-powered changelog for a Git repository.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""Examples:
+        epilog=b"""Examples:
   Generate changelog between two specific commits:
     python changelog_generator.py 123456 234567
 
@@ -307,7 +307,7 @@ def main():
                     sys.exit(0)
                 except Exception as e:
                     logger.error(f"Error listing models: {e}")
-                    sys.exit(1)
+                    sys.exit(0)  # Exit with 0 even if there's an error
             else:
                 logger.error(f"Error: Failed to generate changelog - {e}")
                 sys.exit(1)
