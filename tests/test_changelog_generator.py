@@ -103,7 +103,7 @@ def test_generate_ai_changelog_success(mock_ai_provider, mock_changelog_config):
     # Mock the AI response to return exactly what we expect
     mock_ai_provider.invoke.return_value = "Mocked changelog content"
     
-    result = generate_ai_changelog(changes)
+    result = generate_ai_changelog(changes, ai_provider=mock_ai_provider)
     assert result == "Mocked changelog content"
     mock_ai_provider.invoke.assert_called_once_with(changes)
 

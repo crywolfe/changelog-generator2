@@ -85,13 +85,23 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def generate_ai_changelog(
     changes: Dict[str, List[str]],
+    ai_provider: Optional[AIProviderManager] = None
 ) -> str:
     """
     Generate a changelog using an AI model with robust error handling and retries.
+    
+    Args:
+        changes: Dictionary of changes to generate changelog for
+        ai_provider: Optional AIProviderManager instance for testing
+        
+    Returns:
+        str: Generated changelog content
     """
     config = ChangelogConfig()
     try:
-        ai_provider = AIProviderManager(config.get("model_provider"), config.get("model_name"))
+        if ai_provider is None:
+            ai_provider = AIProviderManager(config.get("model_provider"), config.get("model_name"))
+            
         changelog = ai_provider.invoke(changes)
 
         if not changelog or changelog.startswith("Unable to generate"):
