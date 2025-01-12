@@ -38,7 +38,7 @@ def mock_git_repo():
 
 @pytest.fixture
 def mock_ollama():
-    with patch('ollama') as mock:
+    with patch('changelog_generator.ai_provider_manager.ollama') as mock:
         # Create mock model objects with a 'name' attribute
         mock_models = [
             type('MockModel', (), {'name': 'model1'})(),
@@ -49,7 +49,7 @@ def mock_ollama():
 
 @pytest.fixture
 def mock_validate_commits():
-    with patch('changelog_generator.validate_commits') as mock:
+    with patch('changelog_generator.changelog_utils.validate_commits') as mock:
         # Create mock commits
         mock_commit1 = MagicMock(hexsha='1234567', message='Commit 1 message')
         mock_commit2 = MagicMock(hexsha='7654321', message='Commit 2 message')
@@ -110,7 +110,7 @@ def test_generate_ai_changelog_success(mock_ai_provider, mock_changelog_config):
 def test_generate_ai_changelog_retry(mock_ai_provider):
     changes = {
         "added_files": ["file1"],
-        "modified_files": ["file2"],
+        "modified_files": ["file2"], 
         "deleted_files": ["file3"],
         "breaking_changes": ["change1"]
     }
@@ -118,7 +118,7 @@ def test_generate_ai_changelog_retry(mock_ai_provider):
     # First two attempts fail, third succeeds
     mock_ai_provider.invoke.side_effect = [Exception("Error 1"), Exception("Error 2"), "Mocked changelog content"]
     
-    result = generate_ai_changelog(changes)
+    result = generate_ai_changelog(changes, ai_provider=mock_ai_provider)
     assert result == "Mocked changelog content"
     assert mock_ai_provider.invoke.call_count == 3
 
@@ -133,7 +133,7 @@ def test_generate_ai_changelog_failure_after_retries(mock_ai_provider):
     mock_ai_provider.invoke.side_effect = Exception("Persistent error")
     
     with pytest.raises(Exception):
-        generate_ai_changelog(changes)
+        generate_ai_changelog(changes, ai_provider=mock_ai_provider)
     assert mock_ai_provider.invoke.call_count == 3
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
@@ -146,7 +146,7 @@ def test_generate_ai_changelog_failure(mock_ai_provider):
     }
     
     with pytest.raises(Exception):
-        generate_ai_changelog(changes)
+        generate_ai_changelog(changes, ai_provider=mock_ai_provider)
 
 
 def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
