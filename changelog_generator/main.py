@@ -1,4 +1,4 @@
-from .changelog_generator import main
+from .changelog_generator import main as changelog_main
 
 def main():
     """Entry point for the changelog generator CLI."""
