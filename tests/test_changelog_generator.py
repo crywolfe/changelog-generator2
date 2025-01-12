@@ -64,11 +64,13 @@ def test_generate_ai_changelog_success(mock_ai_provider):
     
     result = generate_ai_changelog(changes)
     assert result == "Mocked changelog content"
+    
     mock_ai_provider.invoke.assert_called_once_with(changes)
     
     from changelog_config import ChangelogConfig
     config = ChangelogConfig()
-    mock_ai_provider.assert_called_once_with(changes)
+    mock_ai_provider.assert_called_once()
+    mock_ai_provider.return_value.assert_called_once()
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
     mock_ai_provider.invoke.side_effect = ValueError("Mock error")
@@ -95,62 +97,77 @@ def test_list_ollama_models_failure(mock_ollama):
 def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
     test_args = ["commit1", "commit2"]
     
-    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-        commit1="commit1",
-        commit2="commit2",
-        repo=".",
-        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-        model_provider="ollama",
-        model_name="qwen2.5:14b",
-        list_models=False,
-        verbose=False
-    )):
-        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-            with caplog.at_level(logging.INFO):
-                main()
-                assert "Changelog generated" in caplog.text
++    output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
++
+     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+         commit1="commit1",
+         commit2="commit2",
+         repo=".",
+-        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
++        output=output_file,
+         model_provider="ollama",
+         model_name="qwen2.5:14b",
+         list_models=False,
+         verbose=False
+     )):
++        mock_ai_provider.invoke.return_value = "Mocked changelog content"
+         with patch('sys.argv', ['changelog_generator.py'] + test_args):
+             with caplog.at_level(logging.INFO):
+                 main()
+                 assert "Changelog generated" in caplog.text
++                
++                # Check if the output file was created and contains the mocked content
++                assert os.path.exists(output_file)
++                with open(output_file, 'r') as f:
++                    content = f.read()
++                assert "Mocked changelog content" in content
++                os.remove(output_file)
 
-def test_main_invalid_commit_range(mock_git_repo):
+def test_main_invalid_commit_range(mock_git_repo, caplog):
     test_args = ["commit1", "commit2"]
     
-    # Configure the mock to raise a ValueError for an invalid commit range
-    mock_git_repo.return_value.iter_commits.side_effect = ValueError("Invalid commit range")
-    
-    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-        commit1="commit1",
-        commit2="commit2",
-        repo=".",
-        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-        model_provider="ollama",
-        model_name="qwen2.5:14b",
-        list_models=False,
-        verbose=False
-    )):
-        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-            assert exc_info.value.code == 1
++    # Configure the mock to raise a ValueError for an invalid commit range
++    mock_git_repo.return_value.iter_commits.side_effect = ValueError("Invalid commit range")
++
++    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
++        commit1="commit1",
++        commit2="commit2",
++        repo=".",
++        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
++        model_provider="ollama",
++        model_name="qwen2.5:14b",
++        list_models=False,
++        verbose=False
++    )):
++        with patch('sys.argv', ['changelog_generator.py'] + test_args):
++            with caplog.at_level(logging.ERROR):
++                with pytest.raises(SystemExit) as exc_info:
++                    main()
++                assert exc_info.value.code == 1
++                assert "Error: Invalid commit range" in caplog.text
 
-def test_main_invalid_repo(mock_git_repo):
-    test_args = ["commit1", "commit2"]
-    
-    # Configure the mock to raise InvalidGitRepositoryError for this specific test
-    mock_git_repo.side_effect = git.exc.InvalidGitRepositoryError("Invalid repository")
-    
-    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-        commit1="commit1",
-        commit2="commit2",
-        repo="invalid",
-        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-        model_provider="ollama",
-        model_name="qwen2.5:14b",
-        list_models=False,
-        verbose=False
-    )):
-        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-            assert exc_info.value.code == 1
+def test_main_invalid_repo(mock_git_repo, caplog):
++    test_args = ["commit1", "commit2"]
++
++    # Configure the mock to raise InvalidGitRepositoryError for this specific test
++    mock_git_repo.side_effect = git.exc.InvalidGitRepositoryError("Invalid repository")
++
++    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
++        commit1="commit1",
++        commit2="commit2",
++        repo="invalid",
++        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
++        model_provider="ollama",
++        model_name="qwen2.5:14b",
++        list_models=False,
++        verbose=False
++    )):
++        with patch('sys.argv', ['changelog_generator.py'] + test_args):
++            with caplog.at_level(logging.ERROR):
++                with pytest.raises(SystemExit) as exc_info:
++                    main()
++                assert exc_info.value.code == 1
++                assert "Error: Invalid git repository" in caplog.text
 
 def test_main_list_models(mock_ollama, caplog):
     test_args = ["--list-models"]
