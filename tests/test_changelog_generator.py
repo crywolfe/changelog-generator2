@@ -303,7 +303,9 @@ def test_main_list_models(mock_ollama, caplog):
         config=None,
         branch=None,
         commit_range=None
-    )):
+    )), \
+    patch('changelog_generator.changelog_utils.AIProviderManager') as mock_ai:
+        mock_ai.return_value.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
                 main()

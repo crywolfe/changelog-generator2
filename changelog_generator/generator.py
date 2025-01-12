@@ -70,7 +70,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
     if os.path.exists(config_path):
         try:
             logger.info(f"Loading configuration from {config_path}")
-            with open(config_path, 'rb') as f:
+            with open(config_path, 'r', encoding='utf-8') as f:
                 user_config = yaml.safe_load(f)
                 # Deep merge default and user config
                 for key, value in user_config.items():
@@ -105,8 +105,10 @@ def generate_ai_changelog(
             
         changelog = ai_provider.invoke(changes)
 
-        if not changelog or changelog.startswith("Unable to generate"):
+        if not changelog:
             raise ValueError("Changelog generation failed")
+        if isinstance(changelog, dict) and "error" in changelog:
+            raise ValueError(changelog["error"])
 
         return changelog
 
