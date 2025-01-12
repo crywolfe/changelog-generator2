@@ -110,6 +110,27 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
                 main()
                 assert "Changelog generated" in caplog.text
 
+def test_main_invalid_commit_range(mock_git_repo):
+    test_args = ["commit1", "commit2"]
+    
+    # Configure the mock to raise a ValueError for an invalid commit range
+    mock_git_repo.return_value.iter_commits.side_effect = ValueError("Invalid commit range")
+    
+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        commit1="commit1",
+        commit2="commit2",
+        repo=".",
+        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+        model_provider="ollama",
+        model_name="qwen2.5:14b",
+        list_models=False,
+        verbose=False
+    )):
+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code == 1
+
 def test_main_invalid_repo(mock_git_repo):
     test_args = ["commit1", "commit2"]
     
