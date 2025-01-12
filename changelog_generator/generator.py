@@ -203,6 +203,7 @@ def main():
     )
     
     parser.add_argument('--commit-range', type=str, help='Git commit range to generate changelog for (e.g., "576ebd6..698b4d07")')
+    parser.add_argument('--list-models', action='store_true', help='List available AI models')
 
     args = parser.parse_args()
 

@@ -100,6 +100,7 @@ def get_commit_changes(repo: git.Repo, commit1: Union[str, git.Commit], commit2:
         "commit_messages": [],
         "diff_details": [],
         "breaking_changes": [],
+        "commit_range": f"{commit1.hexsha}..{commit2.hexsha}"  # Add commit range for tracking
     }
     
     # Validate changes dictionary structure

@@ -298,11 +298,12 @@ def test_main_list_models(mock_ollama, caplog):
         model_name=None,
         list_models=True,
         verbose=False,
-        config=None,  # Added missing config attribute
-        branch=None   # Added missing branch attribute
+        config=None,
+        branch=None,
+        commit_range=None
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
-                with pytest.raises(SystemExit) as exc_info:
-                    main()
-                assert exc_info.value.code == 1
+                main()
+                assert "Available model: model1" in caplog.text
+                assert "Available model: model2" in caplog.text
