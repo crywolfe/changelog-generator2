@@ -201,8 +201,7 @@ def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_co
         config=".changelog.yaml",
         branch=None  # Added missing branch attribute
     )), \
-    # Encode to bytes
-    patch('builtins.open', mock_open(read_data=mock_yaml.encode())), \
+    patch('builtins.open', mock_open(read_data=mock_yaml.encode())), \  # Encode to bytes
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
