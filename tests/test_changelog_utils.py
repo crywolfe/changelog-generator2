@@ -68,9 +68,6 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
     # Mock AI response to indicate no breaking changes
     mock_ai_instance.invoke.return_value = {"result": "No"}
     
-    # Mock structural changes detection
-    mock_commit.message = "Non-breaking change"
-    
     result = get_commit_changes(repo, commit1, commit2)
     
     assert result == {
