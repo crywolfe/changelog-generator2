@@ -19,7 +19,7 @@ A flexible, AI-powered changelog generator for Git repositories.
 ## Installation
 
 ```bash
-pip install changelog-generator
+pip install changelog_generator
 ```
 
 ## Usage
@@ -29,7 +29,7 @@ pip install changelog-generator
 Generate a changelog in the current Git repository:
 
 ```bash
-changelog-generator
+changelog_generator
 ```
 
 ### Configuration
@@ -61,22 +61,22 @@ ai:
 
 ```bash
 # Generate changelog for a specific repository
-changelog-generator --repo /path/to/repo
+python changelog_generator.py --repo /path/to/repo
 
 # Generate changelog for a specific branch
-changelog-generator --branch develop
+python changelog_generator.py --branch develop
 
 # Generate changelog for a specific commit range
-changelog-generator --commit-range "576ebd6..698b4d07"
+python changelog_generator.py --commit-range "576ebd6..698b4d07"
 
 # Changelogs are automatically saved with timestamped filenames
 # e.g., CHANGELOG-YYYYMMDD_HHMMSS.md
 
 # Use a custom configuration file
-changelog-generator --config /path/to/custom_config.yaml
+python changelog_generator.py --config /path/to/custom_config.yaml
 
 # Enable verbose logging
-changelog-generator --verbose
+python changelog_generator.py --verbose
 ```
 
 ## Configuration Options
@@ -122,4 +122,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Your Name - your.email@example.com
 
-Project Link: [https://github.com/yourusername/changelog-generator](https://github.com/yourusername/changelog-generator)
+Project Link: [https://github.com/yourusername/changelog_generator](https://github.com/yourusername/changelog_generator)
