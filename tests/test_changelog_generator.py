@@ -258,7 +258,7 @@ def test_main_invalid_commit_range(mock_git_repo, caplog):
             with caplog.at_level(logging.ERROR):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
-                assert exc_info.value.code == 0
+                assert exc_info.value.code == 1
                 assert "Error: Invalid commit range" in caplog.text
 
 def test_main_invalid_repo(mock_git_repo, caplog):
