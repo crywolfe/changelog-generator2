@@ -106,43 +106,42 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-         verbose=False
-     )):
-         mock_ai_provider.invoke.return_value = "Mocked changelog content"
-         with patch('sys.argv', ['changelog_generator.py'] + test_args):
-             with caplog.at_level(logging.INFO):
-                 main()
-+                
-+                # Check if the output file was created and contains the mocked content
-+                import os
-+                assert os.path.exists(output_file)
-+                with open(output_file, 'r') as f:
-+                    content = f.read()
-+                assert "Mocked changelog content" in content
-+                os.remove(output_file)
+        verbose=False
+    )), \
+    patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
+    patch('os.path.exists', return_value=True):
+        mock_ai_provider.invoke.return_value = "Mocked changelog content"
+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
+            with caplog.at_level(logging.INFO):
+                main()
+                
+                # Verify file was written with correct content
+                mock_file.assert_called_once_with(output_file, 'w')
+                handle = mock_file()
+                handle.write.assert_called_once_with("Mocked changelog content")
 
 def test_main_invalid_commit_range(mock_git_repo, caplog):
     test_args = ["commit1", "commit2"]
     
-+    # Configure the mock to raise a ValueError for an invalid commit range
-+    mock_git_repo.return_value.iter_commits.side_effect = ValueError("Invalid commit range")
-+
-+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-+        commit1="commit1",
-+        commit2="commit2",
-+        repo=".",
-+        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-+        model_provider="ollama",
-+        model_name="qwen2.5:14b",
-+        list_models=False,
-+        verbose=False
-+    )):
-+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-+            with caplog.at_level(logging.ERROR):
-+                with pytest.raises(SystemExit) as exc_info:
-+                    main()
-+                assert exc_info.value.code == 1
-+                assert "Error: Invalid commit range" in caplog.text
+    # Configure the mock to raise a ValueError for an invalid commit range
+    mock_git_repo.return_value.iter_commits.side_effect = ValueError("Invalid commit range")
+
+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        commit1="commit1",
+        commit2="commit2",
+        repo=".",
+        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+        model_provider="ollama",
+        model_name="qwen2.5:14b",
+        list_models=False,
+        verbose=False
+    )):
+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
+            with caplog.at_level(logging.ERROR):
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+                assert exc_info.value.code == 1
+                assert "Error: Invalid commit range" in caplog.text
 
 def test_main_invalid_repo(mock_git_repo, caplog):
     test_args = ["commit1", "commit2"]
