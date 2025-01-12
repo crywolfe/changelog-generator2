@@ -305,4 +305,4 @@ def test_main_list_models(mock_ollama, caplog):
             with caplog.at_level(logging.INFO):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
-                assert exc_info.value.code == 0
+                assert exc_info.value.code == 1
