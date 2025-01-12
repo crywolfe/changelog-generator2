@@ -55,7 +55,7 @@ class AIProviderManager:
             model=self.model_name, messages=self._generate_messages(changes)
         )
         # Print the response object to inspect its structure
-        print(f"Ollama Response: {response.__dict__}")
+        # print(f"Ollama Response: {response.__dict__}")
 
         # Access the content from the nested message attribute
         if hasattr(response, "message") and hasattr(response.message, "content"):

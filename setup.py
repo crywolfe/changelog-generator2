@@ -10,11 +10,13 @@ setup(
         "langchain-community",
         "pyyaml",
         "black",
-        "requests",  # Added for XAI and other future API calls
+        "requests",
+        "ollama",
+        "tenacity"
     ],
     entry_points={
         "console_scripts": [
-            "changelog-generator=changelog_generator:main",
-        ],
+            "changelog-generator=changelog_generator.main:main"
+        ]
     },
 )

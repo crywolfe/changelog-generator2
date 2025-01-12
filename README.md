@@ -1,214 +1,125 @@
-## Configuration
+# Changelog Generator
 
-The changelog generator can be configured using the `ChangelogConfig` class or environment variables. Here are the available configuration options:
+A flexible, AI-powered changelog generator for Git repositories.
 
-### Configuration Class Options
+## Features
 
-- `model_provider`: The AI provider to use (default: "ollama")
-  - Supported providers: "ollama", "xai"
-- `model_name`: Optional specific model name
-- `output_format`: Format of the generated changelog (default: "markdown")
-- `output_directory`: Directory to save the changelog (default: current directory)
-- `max_changelog_entries`: Maximum number of entries to include (default: 50)
-
-### Environment Variable Configuration
-
-For Ollama models, you can set the model using an environment variable:
-
-- `OLLAMA_MODEL`: Specify the Ollama model to use
-  - Example: `export OLLAMA_MODEL=llama3:latest`
-
-### Examples
-
-#### Using ChangelogConfig
-```python
-from changelog_config import ChangelogConfig
-
-# Use a specific Ollama model
-config = ChangelogConfig(
-    model_provider="ollama", 
-    model_name="qwen2.5:14b"
-)
-
-# Or use the default with environment variable configuration
-config = ChangelogConfig(model_provider="ollama")
-```
-
-#### Environment Variable Configuration
-```bash
-# Set Ollama model via environment variable
-export OLLAMA_MODEL=qwen2.5:14b
-```
-
-or use .env
-To configure the application, create a `.env` file with the following variables:
-
-```env
-OLLAMA_MODEL=qwen2.5:14b
-XAI_MODEL=grok-2
-OUTPUT_FILE=CHANGELOG_DEFAULT.md
-XAI_API_KEY=your_api_key_here
-```
-Make sure to replace `your_api_key_here` with your actual API key for `XAI_API_KEY`.
-
-# Git Changelog Generator
-
-## Overview
-
-This Python script generates a detailed changelog between two Git commits, helping you track changes in your repository.
+- 🚀 Automatic changelog generation from Git commit history
+- 🤖 Optional AI-powered changelog enhancement
+- 📝 Configurable changelog sections and output
+- 🔧 Supports project-level configuration
+- 💻 Easy-to-use CLI interface
 
 ## Prerequisites
 
-- Python 3.7+
-- GitPython library
-- Langchain Community
-- python-dotenv
-- Ollama
+- Python 3.8+
+- Git
+- Ollama (optional, for AI-powered changelog generation)
 
 ## Installation
 
-1. **Ollama Client**
-   - Ensure that the Ollama client is installed on your system. You can install it using pip:
-
-     ```bash
-     pip install ollama
-     ```
-
-2. **Python Packages**
-
-Install the required Python packages:
-
 ```bash
-pip install -r requirements.txt
+pip install changelog-generator
 ```
-
-1. **Optional: Set up Ollama**
-
-```bash
-# Install Ollama from https://ollama.com/
-# Pull a model, e.g.:
-ollama pull llama2
-```
-
-## Project Structure
-
-- `changelog_generator.py`: Main script for generating changelogs
-- `changelog_utils.py`: Utility functions for commit and repository operations
 
 ## Usage
 
 ### Basic Usage
 
-Generate a changelog between two commits:
+Generate a changelog in the current Git repository:
 
 ```bash
-python changelog_generator.py <commit1> <commit2>
+changelog-generator
 ```
 
-### Examples
+### Configuration
 
-1. **Compare the last 5 commits with the current HEAD:**
+Create a `.changelog.yaml` file in your project root to customize changelog generation:
+
+```yaml
+# Example .changelog.yaml configuration
+git:
+  repository_path: .
+  branch: main
+  # Optional: specify a specific commit range
+  # commit_range: 'old_commit..new_commit'
+
+changelog:
+  sections:
+    - type: feat
+      title: "🚀 Features"
+    - type: fix
+      title: "🐛 Bug Fixes"
+
+ai:
+  enabled: true
+  provider: ollama
+  model_name: qwen2.5:14b
+```
+
+### CLI Options
 
 ```bash
-python changelog_generator.py HEAD~5 HEAD
+# Generate changelog for a specific repository
+changelog-generator --repo /path/to/repo
+
+# Generate changelog for a specific branch
+changelog-generator --branch develop
+
+# Generate changelog for a specific commit range
+changelog-generator --commit-range "576ebd6..698b4d07"
+
+# Changelogs are automatically saved with timestamped filenames
+# e.g., CHANGELOG-YYYYMMDD_HHMMSS.md
+
+# Use a custom configuration file
+changelog-generator --config /path/to/custom_config.yaml
+
+# Enable verbose logging
+changelog-generator --verbose
 ```
 
-2. **Compare specific commit hashes:**
+## Configuration Options
 
-```bash
-python changelog_generator.py abc1234 def5678
-```
+### Git Settings
+- `repository_path`: Path to the Git repository (default: current directory)
+- `branch`: Branch to generate changelog for (default: main)
+- `commit_range`: Specific commit range to generate changelog
 
-3. **Specify a different repository path:**
+### Changelog Settings
+- `output_file`: Changelog output filename (default: CHANGELOG.md)
+- `sections`: Customize changelog sections by commit type
 
-```bash
-python changelog_generator.py HEAD~3 HEAD --repo /path/to/your/repo
-```
+### AI Settings
+- `enabled`: Enable/disable AI-powered changelog generation
+- `provider`: AI provider (ollama or xai)
+- `model_name`: Specific AI model to use
 
-4. **Generate changelog with custom output file:**
+### Logging Settings
+- `level`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
 
-```bash
-python changelog_generator.py HEAD~1 HEAD -o MY_CHANGELOG.md
-```
+## AI Changelog Generation
 
-5. **Use Ollama or XAI with a specific model:**
+The changelog generator supports AI-powered changelog generation using:
+- Ollama (local AI models)
+- XAI (Grok)
 
-```bash
-# Ollama model selection
-changelog-generator HEAD~1 HEAD --model-provider ollama --model-name llama2
+Ensure you have the necessary AI providers and models configured.
 
-# XAI model selection
-changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-2
-```
+## Contributing
 
-Available AI models:
-
-- **Ollama models can be listed with:**
-
-```bash
-changelog-generator --list-models
-```
-
-- **XAI (Grok) models:**
-  - `grok-1`
-
-### XAI (Grok) Configuration
-
-To use the XAI Grok model, set the `XAI_API_KEY` in your `.env` file:
-
-```bash
-echo "XAI_API_KEY=your_xai_api_key_here" >> .env
-```
-
-Example usage:
-
-```bash
-changelog-generator HEAD~1 HEAD --model-provider xai --model-name grok-2
-```
-
-## Arguments
-
-- `commit1`: First commit hash or reference
-- `commit2`: Second commit hash or reference
-- `--repo`: Optional path to the Git repository (default is current directory)
-- `--model-provider`: AI model provider (ollama or xai, default is ollama)
-- `--model-name`: Specific model to use (default: qwen2.5:14b for Ollama)
-- `--list-models`: List available Ollama models
-- `--verbose`: Enable verbose logging
-
-## Troubleshooting
-
-- Ensure you're in a valid Git repository
-- Verify commit references exist
-- Check that GitPython is correctly installed
-
-## Future Improvements
-
-- Enhanced AI changelog generation
-- Support for multiple LLM providers
-- Customizable changelog templates
-- Improved diff parsing and analysis
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-[MIT License]
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Copyright (c) 2025 Gerry Wolfe
+## Contact
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Your Name - your.email@example.com
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Project Link: [https://github.com/yourusername/changelog-generator](https://github.com/yourusername/changelog-generator)

@@ -1,0 +1,1 @@
+from .changelog_generator import main

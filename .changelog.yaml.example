@@ -1,0 +1,52 @@
+# Changelog Generator Configuration Example
+
+# Git Repository Settings
+git:
+  # Path to the git repository (optional, defaults to current directory)
+  repository_path: .
+  
+  # Branch to generate changelog for (optional, defaults to current branch)
+  branch: main
+  
+  # Optional: Specific commit range to generate changelog
+  # Format: 'start_commit..end_commit'
+  # commit_range: 'old_commit..new_commit'
+
+# Changelog Generation Settings
+changelog:
+  # Output file name (optional, defaults to CHANGELOG.md)
+  output_file: CHANGELOG.md
+  
+  # Customize changelog sections
+  sections:
+    - type: feat
+      title: "🚀 Features"
+    - type: fix
+      title: "🐛 Bug Fixes"
+    - type: docs
+      title: "📝 Documentation"
+    - type: refactor
+      title: "♻️ Refactoring"
+    - type: test
+      title: "🧪 Tests"
+    - type: chore
+      title: "🔧 Chores"
+
+# AI-Powered Changelog Generation (Optional)
+ai:
+  # Enable AI-powered changelog generation
+  enabled: false
+  
+  # AI Provider: 'ollama' or 'xai'
+  provider: ollama
+  
+  # Specific AI model to use
+  model_name: qwen2.5:14b
+  
+  # Optional: API key if required by provider
+  # api_key: null
+
+# Logging Configuration
+logging:
+  # Logging level: DEBUG, INFO, WARNING, ERROR
+  level: INFO

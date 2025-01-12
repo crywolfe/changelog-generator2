@@ -1,0 +1,44 @@
+# Changelog Generator Configuration
+
+# Git Repository Settings
+git:
+  # Path to the git repository (optional, defaults to current directory)
+  repository_path: .
+  
+  # Branch to generate changelog for (optional, defaults to current branch)
+  branch: main
+  commit_range: '576ebd6..698b4d07'
+
+
+# Changelog Generation Settings
+changelog:
+  # Customize changelog sections
+  sections:
+    - type: feat
+      title: "🚀 Features"
+    - type: fix
+      title: "🐛 Bug Fixes"
+    - type: docs
+      title: "📝 Documentation"
+    - type: refactor
+      title: "♻️ Refactoring"
+    - type: test
+      title: "🧪 Tests"
+    - type: chore
+      title: "🔧 Chores"
+
+# AI-Powered Changelog Generation (Optional)
+ai:
+  # Enable AI-powered changelog generation
+  enabled: true
+  
+  # AI Provider: 'ollama' or 'xai'
+  provider: ollama
+  
+  # Specific AI model to use
+  model_name: qwen2.5:14b
+
+# Logging Configuration
+logging:
+  # Logging level: DEBUG, INFO, WARNING, ERROR
+  level: INFO
