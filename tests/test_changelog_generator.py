@@ -109,13 +109,14 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         list_models=False,
          verbose=False
      )):
-+        mock_ai_provider.invoke.return_value = "Mocked changelog content"
+         mock_ai_provider.invoke.return_value = "Mocked changelog content"
          with patch('sys.argv', ['changelog_generator.py'] + test_args):
              with caplog.at_level(logging.INFO):
                  main()
                  assert "Changelog generated" in caplog.text
 +                
 +                # Check if the output file was created and contains the mocked content
++                import os
 +                assert os.path.exists(output_file)
 +                with open(output_file, 'r') as f:
 +                    content = f.read()
