@@ -84,8 +84,13 @@ def test_generate_ai_changelog_success(mock_ai_provider):
         "added_files": ["file1"],
         "modified_files": ["file2"],
         "deleted_files": ["file3"],
-        "breaking_changes": ["change1"]
+        "breaking_changes": ["change1"],
+        "commit_messages": ["commit message"],
+        "diff_details": [{"file": "file2", "patch": "patch content"}]
     }
+    
+    # Mock the AI response to return exactly what we expect
+    mock_ai_provider.invoke.return_value = "Mocked changelog content"
     
     result = generate_ai_changelog(changes)
     assert result == "Mocked changelog content"
