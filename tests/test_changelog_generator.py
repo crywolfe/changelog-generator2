@@ -58,7 +58,7 @@ def mock_validate_commits():
 
 @pytest.fixture
 def mock_get_commit_changes():
-    with patch('changelog_generator.get_commit_changes') as mock:
+    with patch('changelog_generator.changelog_utils.get_commit_changes') as mock:
         # Create mock changes
         mock.return_value = {
             'added_files': ['file1'],
