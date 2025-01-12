@@ -151,7 +151,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate a detailed AI-powered changelog for a Git repository.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=b"""Examples:
+        epilog="""Examples:
   Generate changelog between two specific commits:
     python changelog_generator.py 123456 234567
 
@@ -298,19 +298,19 @@ def main():
                 logger.info(ai_changelog)
 
         except Exception as e:
-            if args.list_models:
-                # List models and exit successfully
-                try:
-                    models = ollama.list()  # Updated to use correct ollama API
-                    for model in models['models']:
-                        logger.info(f"Available model: {model['name']}")
-                    sys.exit(0)
-                except Exception as e:
-                    logger.error(f"Error listing models: {e}")
-                    sys.exit(0)  # Exit with 0 even if there's an error
-            else:
-                logger.error(f"Error: Failed to generate changelog - {e}")
-                sys.exit(1)
+            logger.error(f"Error: Failed to generate changelog - {e}")
+            sys.exit(1)
+
+    if args.list_models:
+        # List models and exit successfully
+        try:
+            models = ollama.list()  # Updated to use correct ollama API
+            for model in models['models']:
+                logger.info(f"Available model: {model['name']}")
+            sys.exit(0)
+        except Exception as e:
+            logger.error(f"Error listing models: {e}")
+            sys.exit(0)  # Exit with 0 even if there's an error
     else:
         logger.warning("AI changelog generation is disabled. No changelog will be generated.")
 
