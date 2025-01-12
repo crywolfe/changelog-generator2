@@ -1,7 +1,7 @@
 import pytest
 import git
 from unittest.mock import Mock, patch
-from changelog_utils import (
+from changelog_generator.changelog_utils import (
     validate_commits,
     get_commit_changes_modified,
     format_breaking_changes,
@@ -85,4 +85,6 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
         "breaking_changes": []
     }
     commit1.diff.assert_called_once_with(commit2)
-    mock_ai_provider.assert_called_once_with("ollama", "qwen2.5:14b")
+    from changelog_generator.changelog_config import ChangelogConfig
+    config = ChangelogConfig()
+    mock_ai_provider.assert_called_once_with(config.get("model_provider"), config.get("model_name"))
