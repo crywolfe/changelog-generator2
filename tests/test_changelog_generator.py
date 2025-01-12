@@ -1,4 +1,5 @@
 import pytest
+import unittest
 from unittest.mock import patch, MagicMock
 from changelog_generator import generate_ai_changelog, _list_ollama_models, main
 import argparse
