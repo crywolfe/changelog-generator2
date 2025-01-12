@@ -1,7 +1,10 @@
 import git
+import yaml
+import sys
 from typing import Dict, List, Union
 from changelog_generator.ai_provider_manager import AIProviderManager
 import logging
+from changelog_generator.changelog_config import ChangelogConfig
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +69,7 @@ def format_breaking_changes(breaking_changes: List[str]) -> str:
     return "- No breaking changes" if not breaking_changes else "\n".join([f"- {change}" for change in breaking_changes])
 
 
-def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
+def get_commit_changes(repo: git.Repo, commit1: Union[str, git.Commit], commit2: Union[str, git.Commit]) -> Dict[str, List[str]]:
     """
     Retrieve changes between two commits.
 
@@ -78,12 +81,16 @@ def get_commit_changes(repo, commit1, commit2) -> Dict[str, List[str]]:
     Returns:
         dict: Detailed changes between commits
     """
-    # Validate input commits
-    if not commit1 or not commit2:
-        raise ValueError("Both commit1 and commit2 must be provided")
-        
-    commit1 = repo.commit(commit1) if isinstance(commit1, str) else commit1
-    commit2 = repo.commit(commit2) if isinstance(commit2, str) else commit2
+    try:
+        # Validate input commits
+        if not commit1 or not commit2:
+            raise ValueError("Both commit1 and commit2 must be provided")
+            
+        commit1 = repo.commit(commit1) if isinstance(commit1, str) else commit1
+        commit2 = repo.commit(commit2) if isinstance(commit2, str) else commit2
+    except git.exc.GitError as e:
+        logger.error(f"Error validating commits: {e}")
+        raise ValueError(f"Invalid commit references: {e}")
 
     # Initialize changes dictionary with required keys
     changes = {
