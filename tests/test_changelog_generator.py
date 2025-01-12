@@ -134,7 +134,7 @@ def test_generate_ai_changelog_failure_after_retries(mock_ai_provider):
     
     with pytest.raises(Exception):
         generate_ai_changelog(changes, ai_provider=mock_ai_provider)
-    assert mock_ai_provider.invoke.call_count == 1  # Changed to 1 since we reduced retries
+    assert mock_ai_provider.invoke.call_count == 3  # Should match retry count
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
     mock_ai_provider.invoke.side_effect = ValueError("Mock error")

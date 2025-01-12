@@ -69,6 +69,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 
     if os.path.exists(config_path):
         try:
+            logger.info(f"Loading configuration from {config_path}")
             with open(config_path, 'rb') as f:
                 user_config = yaml.safe_load(f)
                 # Deep merge default and user config
@@ -225,7 +226,7 @@ def main():
     try:
         repo = git.Repo(config['git']['repository_path'])
     except git.exc.InvalidGitRepositoryError:
-        logger.error(f"Error: {config['git']['repository_path']} is not a valid Git repository.")
+        logger.error(f"Error: Invalid git repository at {config['git']['repository_path']}")
         sys.exit(1)
 
     # Get commits
@@ -247,7 +248,7 @@ def main():
         
         logger.info(f"Generating changelog from {commit1.hexsha[:7]} to {commit2.hexsha[:7]}")
     except Exception as e:
-        logger.error(f"Commit retrieval error: {e}")
+        logger.error(f"Error: Invalid commit range - {e}")
         sys.exit(1)
 
     # Get changes between commits
@@ -296,7 +297,7 @@ def main():
                 logger.info(ai_changelog)
 
         except Exception as e:
-            logger.error(f"Error generating AI changelog: {e}")
+            logger.error(f"Error: Failed to generate changelog - {e}")
             sys.exit(1)
     else:
         logger.warning("AI changelog generation is disabled. No changelog will be generated.")
