@@ -49,7 +49,7 @@ def test_format_breaking_changes_with_changes():
     result = format_breaking_changes(changes)
     assert result == "- Change 1\n- Change 2"
 
-@patch('changelog_utils.AIProviderManager')
+@patch('changelog_generator.changelog_utils.AIProviderManager')
 def test_get_commit_changes(mock_ai_provider, mock_repo):
     repo, commit1, commit2 = mock_repo
     diff = Mock()
