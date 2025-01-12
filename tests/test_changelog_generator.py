@@ -11,7 +11,7 @@ import os
 
 @pytest.fixture
 def mock_ai_provider():
-    with patch('changelog_generator.AIProviderManager') as mock:
+    with patch('changelog_generator.changelog_utils.AIProviderManager') as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         mock_instance.invoke.return_value = "Mocked changelog content"
@@ -19,7 +19,7 @@ def mock_ai_provider():
 
 @pytest.fixture
 def mock_git_repo():
-    with patch('changelog_generator.git.Repo') as mock:
+    with patch('git.Repo') as mock:
         # Create a mock repo that can be configured differently for each test
         mock_instance = MagicMock()
         mock.return_value = mock_instance
@@ -27,7 +27,7 @@ def mock_git_repo():
 
 @pytest.fixture
 def mock_ollama():
-    with patch('changelog_generator.ollama') as mock:
+    with patch('ollama') as mock:
         # Create mock model objects with a 'name' attribute
         mock_models = [
             type('MockModel', (), {'name': 'model1'})(),
