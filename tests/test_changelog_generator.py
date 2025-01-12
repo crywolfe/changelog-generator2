@@ -134,7 +134,7 @@ def test_generate_ai_changelog_failure_after_retries(mock_ai_provider):
     
     with pytest.raises(Exception):
         generate_ai_changelog(changes, ai_provider=mock_ai_provider)
-    assert mock_ai_provider.invoke.call_count == 3
+    assert mock_ai_provider.invoke.call_count == 1  # Changed to 1 since we reduced retries
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
     mock_ai_provider.invoke.side_effect = ValueError("Mock error")
@@ -162,7 +162,9 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False
+        verbose=False,
+        config=None,  # Added missing config attribute
+        branch=None   # Added missing branch attribute
     )), \
     patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
@@ -196,9 +198,10 @@ def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_co
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        config=".changelog.yaml"
+        config=".changelog.yaml",
+        branch=None  # Added missing branch attribute
     )), \
-    patch('builtins.open', mock_open(read_data=mock_yaml)), \
+    patch('builtins.open', mock_open(read_data=mock_yaml.encode())), \  # Encode to bytes
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
@@ -219,7 +222,9 @@ def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_c
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        commit_range="576ebd6..698b4d07"
+        commit_range="576ebd6..698b4d07",
+        config=None,  # Added missing config attribute
+        branch=None   # Added missing branch attribute
     )), \
     patch('builtins.open', unittest.mock.mock_open()), \
     patch('os.path.exists', return_value=True):
@@ -244,7 +249,8 @@ def test_main_invalid_commit_range(mock_git_repo, caplog):
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        config=None
+        config=None,
+        branch=None  # Added missing branch attribute
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -267,7 +273,9 @@ def test_main_invalid_repo(mock_git_repo, caplog):
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False
+        verbose=False,
+        config=None,  # Added missing config attribute
+        branch=None   # Added missing branch attribute
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -287,7 +295,9 @@ def test_main_list_models(mock_ollama, caplog):
         model_provider="ollama",
         model_name=None,
         list_models=True,
-        verbose=False
+        verbose=False,
+        config=None,  # Added missing config attribute
+        branch=None   # Added missing branch attribute
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
