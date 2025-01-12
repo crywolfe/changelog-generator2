@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import git
 import ollama
 import yaml
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, wait_fixed
 from changelog_generator.changelog_config import ChangelogConfig
 
 from changelog_generator.ai_provider_manager import AIProviderManager
