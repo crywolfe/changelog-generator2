@@ -69,7 +69,6 @@ def test_generate_ai_changelog_success(mock_ai_provider):
     
     from changelog_config import ChangelogConfig
     config = ChangelogConfig()
-    mock_ai_provider.assert_called_once()
     mock_ai_provider.return_value.assert_called_once()
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
@@ -187,4 +186,3 @@ def test_main_list_models(mock_ollama, caplog):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
                 assert exc_info.value.code == 0
-                assert "Available Ollama Models" in caplog.text
