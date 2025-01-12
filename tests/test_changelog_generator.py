@@ -167,6 +167,8 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
     )), \
     patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
+        # Configure mock to return bytes instead of str
+        mock_file.return_value.read.return_value = b"mock file content"
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
@@ -199,7 +201,7 @@ def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_co
         verbose=False,
         config=".changelog.yaml"
     )), \
-    patch('builtins.open', mock_open(read_data=mock_yaml)), \
+    patch('builtins.open', mock_open(read_data=mock_yaml.encode('utf-8'))), \
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
@@ -223,8 +225,10 @@ def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_c
         commit_range="576ebd6..698b4d07",
         config=None
     )), \
-    patch('builtins.open', unittest.mock.mock_open()), \
+    patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
+        # Configure mock to return bytes instead of str
+        mock_file.return_value.read.return_value = b"mock file content"
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
