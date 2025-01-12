@@ -18,6 +18,17 @@ def mock_ai_provider():
         yield mock_instance
 
 @pytest.fixture
+def mock_changelog_config():
+    with patch('changelog_generator.changelog_config.ChangelogConfig') as mock:
+        mock_instance = MagicMock()
+        mock.return_value = mock_instance
+        mock_instance.get.side_effect = lambda key, default=None: {
+            "model_provider": "ollama",
+            "model_name": "qwen2.5:14b"
+        }.get(key, default)
+        yield mock_instance
+
+@pytest.fixture
 def mock_git_repo():
     with patch('git.Repo') as mock:
         # Create a mock repo that can be configured differently for each test
@@ -79,7 +90,7 @@ def test_load_config_custom_file():
         assert config['ai']['enabled'] is True
         assert config['logging']['level'] == 'DEBUG'
 
-def test_generate_ai_changelog_success(mock_ai_provider):
+def test_generate_ai_changelog_success(mock_ai_provider, mock_changelog_config):
     changes = {
         "added_files": ["file1"],
         "modified_files": ["file2"],
