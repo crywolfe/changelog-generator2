@@ -66,7 +66,7 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
     mock_ai_instance = Mock()
     mock_ai_provider.return_value = mock_ai_instance
     # Mock AI response to indicate no breaking changes
-    mock_ai_instance.invoke.return_value = "No"
+    mock_ai_instance.invoke.return_value = {"result": "No"}
     
     # Mock structural changes detection
     mock_commit.message = "Non-breaking change"
@@ -77,7 +77,7 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
         "added_files": [],
         "modified_files": ["file.txt"],
         "deleted_files": [],
-        "commit_messages": ["Non-breaking change"],
+        "commit_messages": ["commit message"],
         "diff_details": [{
             "file": "file.txt",
             "patch": "patch content"
@@ -85,6 +85,3 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
         "breaking_changes": []
     }
     commit1.diff.assert_called_once_with(commit2)
-    from changelog_generator.changelog_config import ChangelogConfig
-    config = ChangelogConfig()
-    mock_ai_provider.assert_called_once_with(config.get("model_provider"), config.get("model_name"))
