@@ -58,7 +58,7 @@ def mock_validate_commits():
 
 @pytest.fixture
 def mock_get_commit_changes():
-    with patch('changelog_generator.changelog_utils.get_commit_changes') as mock:
+    with patch('changelog_generator.get_commit_changes') as mock:
         # Create mock changes
         mock.return_value = {
             'added_files': ['file1'],
@@ -162,13 +162,10 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False,
-        config=None
+        verbose=False
     )), \
     patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
-        # Configure mock to return bytes instead of str
-        mock_file.return_value.read.return_value = b"mock file content"
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
@@ -201,7 +198,7 @@ def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_co
         verbose=False,
         config=".changelog.yaml"
     )), \
-    patch('builtins.open', mock_open(read_data=mock_yaml.encode('utf-8'))), \
+    patch('builtins.open', mock_open(read_data=mock_yaml)), \
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
@@ -222,13 +219,10 @@ def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_c
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        commit_range="576ebd6..698b4d07",
-        config=None
+        commit_range="576ebd6..698b4d07"
     )), \
-    patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
+    patch('builtins.open', unittest.mock.mock_open()), \
     patch('os.path.exists', return_value=True):
-        # Configure mock to return bytes instead of str
-        mock_file.return_value.read.return_value = b"mock file content"
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
@@ -249,8 +243,7 @@ def test_main_invalid_commit_range(mock_git_repo, caplog):
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False,
-        config=None
+        verbose=False
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -273,8 +266,7 @@ def test_main_invalid_repo(mock_git_repo, caplog):
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False,
-        config=None
+        verbose=False
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -294,8 +286,7 @@ def test_main_list_models(mock_ollama, caplog):
         model_provider="ollama",
         model_name=None,
         list_models=True,
-        verbose=False,
-        config=None
+        verbose=False
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
