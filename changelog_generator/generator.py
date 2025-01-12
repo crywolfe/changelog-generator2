@@ -147,11 +147,11 @@ def get_git_commits(repo: git.Repo, config: Dict, commit1: Optional[str] = None,
     return commit1, commit2
 
 def main():
-    # Create parser without gettext translation
+    # Create parser with explicit encoding
     parser = argparse.ArgumentParser(
         description="Generate a detailed AI-powered changelog for a Git repository.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=b"""Examples:
+        epilog="""Examples:
   Generate changelog between two specific commits:
     python changelog_generator.py 123456 234567
 
@@ -300,10 +300,14 @@ def main():
         except Exception as e:
             if args.list_models:
                 # List models and exit successfully
-                models = ollama.models.list()
-                for model in models.models:
-                    logger.info(f"Available model: {model.name}")
-                sys.exit(0)
+                try:
+                    models = ollama.list()  # Updated to use correct ollama API
+                    for model in models['models']:
+                        logger.info(f"Available model: {model['name']}")
+                    sys.exit(0)
+                except Exception as e:
+                    logger.error(f"Error listing models: {e}")
+                    sys.exit(1)
             else:
                 logger.error(f"Error: Failed to generate changelog - {e}")
                 sys.exit(1)

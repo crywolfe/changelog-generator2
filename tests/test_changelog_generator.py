@@ -40,11 +40,13 @@ def mock_git_repo():
 def mock_ollama():
     with patch('changelog_generator.ai_provider_manager.ollama') as mock:
         # Create mock model objects with a 'name' attribute
-        mock_models = [
-            type('MockModel', (), {'name': 'model1'})(),
-            type('MockModel', (), {'name': 'model2'})()
-        ]
-        mock.models.list.return_value = type('MockResponse', (), {'models': mock_models})()
+        mock_models = {
+            'models': [
+                {'name': 'model1'},
+                {'name': 'model2'}
+            ]
+        }
+        mock.list.return_value = mock_models
         yield mock
 
 @pytest.fixture
