@@ -145,27 +145,27 @@ def test_main_invalid_commit_range(mock_git_repo, caplog):
 +                assert "Error: Invalid commit range" in caplog.text
 
 def test_main_invalid_repo(mock_git_repo, caplog):
-+    test_args = ["commit1", "commit2"]
-+
-+    # Configure the mock to raise InvalidGitRepositoryError for this specific test
-+    mock_git_repo.side_effect = git.exc.InvalidGitRepositoryError("Invalid repository")
-+
-+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-+        commit1="commit1",
-+        commit2="commit2",
-+        repo="invalid",
-+        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-+        model_provider="ollama",
-+        model_name="qwen2.5:14b",
-+        list_models=False,
-+        verbose=False
-+    )):
-+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-+            with caplog.at_level(logging.ERROR):
-+                with pytest.raises(SystemExit) as exc_info:
-+                    main()
-+                assert exc_info.value.code == 1
-+                assert "Error: Invalid git repository" in caplog.text
+    test_args = ["commit1", "commit2"]
+
+    # Configure the mock to raise InvalidGitRepositoryError for this specific test
+    mock_git_repo.side_effect = git.exc.InvalidGitRepositoryError("Invalid repository")
+
+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        commit1="commit1",
+        commit2="commit2",
+        repo="invalid",
+        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+        model_provider="ollama",
+        model_name="qwen2.5:14b",
+        list_models=False,
+        verbose=False
+    )):
+        with patch('sys.argv', ['changelog_generator.py'] + test_args):
+            with caplog.at_level(logging.ERROR):
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+                assert exc_info.value.code == 1
+                assert "Error: Invalid git repository" in caplog.text
 
 def test_main_list_models(mock_ollama, caplog):
     test_args = ["--list-models"]
