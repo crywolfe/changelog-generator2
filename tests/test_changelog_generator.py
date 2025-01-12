@@ -289,6 +289,8 @@ def test_main_invalid_repo(mock_git_repo, caplog):
 def test_main_list_models(mock_ollama, caplog):
     test_args = ["--list-models"]
     
+    mock_ollama.list.return_value = {'models': [{'name': 'model1'}, {'name': 'model2'}]}
+    
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         commit1=None,
         commit2=None,

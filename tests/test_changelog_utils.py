@@ -79,6 +79,7 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
             "file": "file.txt",
             "patch": "patch content"
         }],
-        "breaking_changes": []
+        "breaking_changes": [],
+        "commit_range": f"{commit1.hexsha}..{commit2.hexsha}"
     }
     commit1.diff.assert_called_once_with(commit2)
