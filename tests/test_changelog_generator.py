@@ -65,6 +65,10 @@ def test_generate_ai_changelog_success(mock_ai_provider):
     result = generate_ai_changelog(changes)
     assert result == "Mocked changelog content"
     mock_ai_provider.invoke.assert_called_once_with(changes)
+    
+    from changelog_config import ChangelogConfig
+    config = ChangelogConfig()
+    mock_ai_provider.assert_called_once_with(changes)
 
 def test_generate_ai_changelog_failure(mock_ai_provider):
     mock_ai_provider.invoke.side_effect = ValueError("Mock error")
