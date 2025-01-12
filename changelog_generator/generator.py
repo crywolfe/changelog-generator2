@@ -69,7 +69,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 
     if os.path.exists(config_path):
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, 'rb') as f:
                 user_config = yaml.safe_load(f)
                 # Deep merge default and user config
                 for key, value in user_config.items():
@@ -82,7 +82,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 
     return default_config
 
-@retry(stop=stop_after_attempt(1), wait=wait_fixed(0.1))  # Faster retries for tests
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def generate_ai_changelog(
     changes: Dict[str, List[str]],
     ai_provider: Optional[AIProviderManager] = None
@@ -158,9 +158,14 @@ def main():
 """
     )
     parser.add_argument(
-        "commits",
-        nargs='*',
-        help="Two commit hashes to compare (first and last commit)"
+        "commit1",
+        nargs='?',
+        help="First commit hash"
+    )
+    parser.add_argument(
+        "commit2", 
+        nargs='?',
+        help="Last commit hash"
     )
     parser.add_argument(
         "--config",
@@ -225,11 +230,20 @@ def main():
 
     # Get commits
     try:
-        # Support both old and new commit specification methods
-        if len(args.commits) == 2:
-            commit1, commit2 = get_git_commits(repo, config, args.commits[0], args.commits[1])
-        else:
+        # Get commits based on provided arguments or config
+        commit1 = args.commit1
+        commit2 = args.commit2
+            
+        if not commit1 and not commit2:
+            # If no commits provided, use config defaults
             commit1, commit2 = get_git_commits(repo, config)
+        else:
+            # Validate that both commits are provided if either is
+            if not commit1 or not commit2:
+                logger.error("Error: Must provide both start and end commits")
+                sys.exit(1)
+                    
+            commit1, commit2 = get_git_commits(repo, config, commit1, commit2)
         
         logger.info(f"Generating changelog from {commit1.hexsha[:7]} to {commit2.hexsha[:7]}")
     except Exception as e:
