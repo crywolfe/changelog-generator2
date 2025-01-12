@@ -1,7 +1,7 @@
 import pytest
 import unittest
 from unittest.mock import patch, MagicMock
-from changelog_generator import generate_ai_changelog, _list_ollama_models, main
+from changelog_generator import generate_ai_changelog, main
 import argparse
 from datetime import datetime
 import logging
@@ -68,7 +68,7 @@ def test_generate_ai_changelog_success(mock_ai_provider):
     
     mock_ai_provider.invoke.assert_called_once_with(changes)
     
-    from changelog_config import ChangelogConfig
+    from changelog_generator.changelog_config import ChangelogConfig
     config = ChangelogConfig()
     mock_ai_provider.return_value.assert_called_once()
 
@@ -84,15 +84,6 @@ def test_generate_ai_changelog_failure(mock_ai_provider):
     with pytest.raises(Exception):
         generate_ai_changelog(changes)
 
-def test_list_ollama_models_success(mock_ollama):
-    models = _list_ollama_models()
-    assert models == ["model1", "model2"]
-    mock_ollama.models.list.assert_called_once()
-
-def test_list_ollama_models_failure(mock_ollama):
-    mock_ollama.models.list.side_effect = Exception("Mock error")
-    with pytest.raises(Exception):
-        _list_ollama_models()
 
 def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
     test_args = ["commit1", "commit2"]
