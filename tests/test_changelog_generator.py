@@ -162,7 +162,8 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False
+        verbose=False,
+        config=None
     )), \
     patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
@@ -219,7 +220,8 @@ def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_c
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        commit_range="576ebd6..698b4d07"
+        commit_range="576ebd6..698b4d07",
+        config=None
     )), \
     patch('builtins.open', unittest.mock.mock_open()), \
     patch('os.path.exists', return_value=True):
