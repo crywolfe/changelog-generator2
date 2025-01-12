@@ -287,7 +287,7 @@ def main():
             model_name = config.get("model_name")
 
             # Write changelog to file
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding='utf-8') as f:
                 f.write(
                     f"# Changelog: {commit1.hexsha[:7]}..{commit2.hexsha[:7]} (via {model_provider}/{model_name})\n\n"
                 )

@@ -308,6 +308,9 @@ def test_main_list_models(mock_ollama, caplog):
         mock_ai.return_value.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
-                main()
+                try:
+                    main()
+                except SystemExit:
+                    pass  # Expected exit after listing models
                 assert "Available model: model1" in caplog.text
                 assert "Available model: model2" in caplog.text
