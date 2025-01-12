@@ -16,6 +16,8 @@ changelog_env/
 dist/
 build/
 pip-wheel-metadata/
+changelog_generator.egg-info/top_level.txt
+changelog_generator.egg-info/
 *.egg-info/
 *.egg
 *.eggs/
