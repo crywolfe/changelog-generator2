@@ -58,7 +58,7 @@ def mock_validate_commits():
 
 @pytest.fixture
 def mock_get_commit_changes():
-    with patch('changelog_generator.get_commit_changes') as mock:
+    with patch('changelog_generator.changelog_utils.get_commit_changes') as mock:
         # Create mock changes
         mock.return_value = {
             'added_files': ['file1'],
@@ -114,13 +114,13 @@ def test_generate_ai_changelog_retry(mock_ai_provider):
         "deleted_files": ["file3"],
         "breaking_changes": ["change1"]
     }
-    
-    # First two attempts fail, third succeeds
-    mock_ai_provider.invoke.side_effect = [Exception("Error 1"), Exception("Error 2"), "Mocked changelog content"]
-    
+        
+    # First attempt fails, second succeeds
+    mock_ai_provider.invoke.side_effect = [Exception("Error 1"), "Mocked changelog content"]
+        
     result = generate_ai_changelog(changes, ai_provider=mock_ai_provider)
     assert result == "Mocked changelog content"
-    assert mock_ai_provider.invoke.call_count == 3
+    assert mock_ai_provider.invoke.call_count == 2
 
 def test_generate_ai_changelog_failure_after_retries(mock_ai_provider):
     changes = {

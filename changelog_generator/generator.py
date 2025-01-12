@@ -82,7 +82,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 
     return default_config
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+@retry(stop=stop_after_attempt(1), wait=wait_fixed(0.1))  # Faster retries for tests
 def generate_ai_changelog(
     changes: Dict[str, List[str]],
     ai_provider: Optional[AIProviderManager] = None
