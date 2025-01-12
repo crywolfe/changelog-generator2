@@ -243,7 +243,8 @@ def test_main_invalid_commit_range(mock_git_repo, caplog):
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False
+        verbose=False,
+        config=None
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -266,7 +267,8 @@ def test_main_invalid_repo(mock_git_repo, caplog):
         model_provider="ollama",
         model_name="qwen2.5:14b",
         list_models=False,
-        verbose=False
+        verbose=False,
+        config=None
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.ERROR):
@@ -286,7 +288,8 @@ def test_main_list_models(mock_ollama, caplog):
         model_provider="ollama",
         model_name=None,
         list_models=True,
-        verbose=False
+        verbose=False,
+        config=None
     )):
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):

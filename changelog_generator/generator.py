@@ -163,6 +163,10 @@ def main():
         help="Two commit hashes to compare (first and last commit)"
     )
     parser.add_argument(
+        "--config",
+        help="Path to custom configuration file"
+    )
+    parser.add_argument(
         "--repo",
         default=".",
         help="Path to the Git repository (default: current directory)"
