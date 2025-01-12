@@ -1,5 +1,4 @@
-from changelog_generator import main, generate_ai_changelog
-from changelog_generator import _list_ollama_models
+from .main import main
+from .changelog_generator import generate_ai_changelog, _list_ollama_models
 
-def run_main():
-    return main()
+__all__ = ['main', 'generate_ai_changelog', '_list_ollama_models']

@@ -1,7 +1,8 @@
 import pytest
 import unittest
 from unittest.mock import patch, MagicMock
-from changelog_generator import generate_ai_changelog, _list_ollama_models, main
+from changelog_generator.changelog_generator import generate_ai_changelog, _list_ollama_models
+from changelog_generator.main import main
 import argparse
 from datetime import datetime
 import logging
