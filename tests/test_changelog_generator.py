@@ -97,11 +97,11 @@ def test_list_ollama_models_failure(mock_ollama):
 def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
     test_args = ["commit1", "commit2"]
     
-+    output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-+
-     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-         commit1="commit1",
-         commit2="commit2",
+    output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+
+    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        commit1="commit1",
+        commit2="commit2",
          repo=".",
 -        output=f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
 +        output=output_file,
