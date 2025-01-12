@@ -147,10 +147,11 @@ def get_git_commits(repo: git.Repo, config: Dict, commit1: Optional[str] = None,
     return commit1, commit2
 
 def main():
+    # Create parser without gettext translation
     parser = argparse.ArgumentParser(
         description="Generate a detailed AI-powered changelog for a Git repository.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""Examples:
+        epilog=b"""Examples:
   Generate changelog between two specific commits:
     python changelog_generator.py 123456 234567
 
@@ -262,7 +263,7 @@ def main():
             logger.info(f"Deleted Files: {changes['deleted_files']}")
             logger.info(f"Breaking Changes: {changes['breaking_changes']}")
     except Exception as e:
-        logger.error(f"Error retrieving commit changes: {e}")
+        logger.error(f"Error: Invalid commit range - {e}")
         sys.exit(1)
 
     # Generate AI-powered changelog if enabled
@@ -297,8 +298,15 @@ def main():
                 logger.info(ai_changelog)
 
         except Exception as e:
-            logger.error(f"Error: Failed to generate changelog - {e}")
-            sys.exit(1)
+            if args.list_models:
+                # List models and exit successfully
+                models = ollama.models.list()
+                for model in models.models:
+                    logger.info(f"Available model: {model.name}")
+                sys.exit(0)
+            else:
+                logger.error(f"Error: Failed to generate changelog - {e}")
+                sys.exit(1)
     else:
         logger.warning("AI changelog generation is disabled. No changelog will be generated.")
 
