@@ -183,8 +183,8 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
                 main()
                 
                 # Verify file was written with correct content
-                mock_file.assert_called_once_with(output_file, 'w')
-                handle = mock_file()
+                mock_open_bytes.assert_called_once_with(output_file, 'w', encoding='utf-8')
+                handle = mock_open_bytes()
                 handle.write.assert_called_once_with("Mocked changelog content")
                 assert "Changelog generated and saved to" in caplog.text
 
