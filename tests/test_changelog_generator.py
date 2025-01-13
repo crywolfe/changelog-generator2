@@ -192,21 +192,23 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         model_name="qwen2.5:14b",
         list_models=False,
         verbose=False,
-        config=None,  # Added missing config attribute
-        branch=None,   # Added missing branch attribute
+        config=None,
+        branch=None,
         commit_range=None
     )), \
     patch('os.path.exists', return_value=True), \
-    patch('builtins.open', mock_open(read_data=valid_mo_header)) as mock_file:
+    patch('builtins.open', create=True) as mock_open_func:
+        # Create a mock file object
+        mock_file = mock_open_func.return_value.__enter__.return_value
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
+        
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
                 main()
                 
                 # Verify file was written with correct content
-                mock_file.assert_called_once_with(output_file, 'w', encoding='utf-8')
-                handle = mock_file()
-                handle.write.assert_called_once_with("Mocked changelog content")
+                mock_open_func.assert_called_once_with(output_file, 'w', encoding='utf-8')
+                mock_file.write.assert_called_once_with("Mocked changelog content")
                 assert "Changelog generated and saved to" in caplog.text
 
 def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
