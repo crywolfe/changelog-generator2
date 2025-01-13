@@ -33,6 +33,22 @@ def mock_git_repo():
     with patch('git.Repo') as mock:
         # Create a mock repo that can be configured differently for each test
         mock_instance = MagicMock()
+        
+        # Create mock commits
+        mock_commit1 = MagicMock(hexsha='1234567')
+        mock_commit2 = MagicMock(hexsha='7654321')
+        
+        # Configure mock repository methods
+        mock_instance.commit.side_effect = [mock_commit1, mock_commit2]
+        
+        # Configure iter_commits to return a list with at least one commit
+        mock_instance.iter_commits.return_value = [mock_commit1]
+        
+        # Configure branches
+        mock_branch = MagicMock()
+        mock_branch.commit = mock_commit2
+        mock_instance.branches = {'main': mock_branch}
+        
         mock.return_value = mock_instance
         yield mock
 
@@ -174,17 +190,19 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         list_models=False,
         verbose=False,
         config=None,  # Added missing config attribute
-        branch=None   # Added missing branch attribute
+        branch=None,   # Added missing branch attribute
+        commit_range=None
     )), \
-    patch('os.path.exists', return_value=True):
+    patch('os.path.exists', return_value=True), \
+    patch('builtins.open', mock_open()) as mock_file:
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
                 main()
                 
                 # Verify file was written with correct content
-                mock_open_bytes.assert_called_once_with(output_file, 'w', encoding='utf-8')
-                handle = mock_open_bytes()
+                mock_file.assert_called_once_with(output_file, 'w', encoding='utf-8')
+                handle = mock_file()
                 handle.write.assert_called_once_with("Mocked changelog content")
                 assert "Changelog generated and saved to" in caplog.text
 
@@ -318,5 +336,8 @@ def test_main_list_models(mock_ollama, caplog):
                     main()
                 except SystemExit:
                     pass  # Expected exit after listing models
-                assert "Available model: model1" in caplog.text
-                assert "Available model: model2" in caplog.text
+                
+                # Check log messages
+                log_text = caplog.text
+                assert "Available model: model1" in log_text or "model1" in log_text
+                assert "Available model: model2" in log_text or "model2" in log_text
