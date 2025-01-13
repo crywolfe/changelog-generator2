@@ -309,7 +309,7 @@ def main():
         try:
             models = ollama.list()  # Updated to use correct ollama API
             for model in models['models']:
-                logger.info(f"Available model: {model['name']}")
+                logger.info(f"Available model: {model.get('name', 'Unknown')}")
             sys.exit(0)
         except Exception as e:
             logger.error(f"Error listing models: {e}")
