@@ -151,9 +151,9 @@ def test_generate_ai_changelog_failure(mock_ai_provider):
         generate_ai_changelog(changes, ai_provider=mock_ai_provider)
 
 
-def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
+def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog, mock_open_bytes):
     test_args = ["commit1", "commit2"]
-    
+
     output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
 
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
@@ -168,7 +168,6 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         config=None,  # Added missing config attribute
         branch=None   # Added missing branch attribute
     )), \
-    patch('builtins.open', unittest.mock.mock_open()) as mock_file, \
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
@@ -212,9 +211,9 @@ def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_co
                 assert "Loading configuration from" in caplog.text
                 assert "DEBUG" in caplog.text
 
-def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
+def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog, mock_open_bytes):
     test_args = ["--commit-range", "576ebd6..698b4d07"]
-    
+
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         commit1=None,
         commit2=None,
@@ -228,7 +227,6 @@ def test_main_with_commit_range(mock_git_repo, mock_ai_provider, mock_validate_c
         config=None,  # Added missing config attribute
         branch=None   # Added missing branch attribute
     )), \
-    patch('builtins.open', unittest.mock.mock_open()), \
     patch('os.path.exists', return_value=True):
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
