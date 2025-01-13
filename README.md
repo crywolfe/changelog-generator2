@@ -15,6 +15,8 @@ A flexible, AI-powered changelog generator for Git repositories.
 - Python 3.8+
 - Git
 - Ollama (optional, for AI-powered changelog generation)
+- **requirements.txt**: A file specifying the project's dependencies.
+  - This file lists all Python packages and their versions required for the project to function correctly.
 
 ## Installation
 
@@ -61,22 +63,22 @@ ai:
 
 ```bash
 # Generate changelog for a specific repository
-python changelog_generator.py --repo /path/to/repo
+python -m changelog_generator.main --repo /path/to/repo
 
 # Generate changelog for a specific branch
-python changelog_generator.py --branch develop
+python -m changelog_generator.main --branch develop
 
 # Generate changelog for a specific commit range
-python changelog_generator.py --commit-range "576ebd6..698b4d07"
+python -m changelog_generator.main --commit-range "576ebd6..698b4d07"
 
 # Changelogs are automatically saved with timestamped filenames
 # e.g., CHANGELOG-YYYYMMDD_HHMMSS.md
 
 # Use a custom configuration file
-python changelog_generator.py --config /path/to/custom_config.yaml
+python -m changelog_generator.main --config /path/to/custom_config.yaml
 
 # Enable verbose logging
-python changelog_generator.py --verbose
+python -m changelog_generator.main --verbose
 ```
 
 ## Configuration Options

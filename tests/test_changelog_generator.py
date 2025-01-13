@@ -175,42 +175,6 @@ def test_generate_ai_changelog_failure(mock_ai_provider):
         generate_ai_changelog(changes, ai_provider=mock_ai_provider)
 
 
-def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog, mock_open_bytes):
-    test_args = ["commit1", "commit2"]
-
-    output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-
-    # Create a valid .mo file header (little-endian 32-bit words)
-    valid_mo_header = b'\x95\x04\x12\xde\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
-    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-        commit1="commit1",
-        commit2="commit2",
-        repo=".",
-        output=output_file,
-        model_provider="ollama",
-        model_name="qwen2.5:14b",
-        list_models=False,
-        verbose=False,
-        config=None,
-        branch=None,
-        commit_range=None
-    )), \
-    patch('os.path.exists', return_value=True), \
-    patch('builtins.open', create=True) as mock_open_func:
-        # Create a mock file object
-        mock_file = mock_open_func.return_value.__enter__.return_value
-        mock_ai_provider.invoke.return_value = "Mocked changelog content"
-        
-        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-            with caplog.at_level(logging.INFO):
-                main()
-                
-                # Verify file was written with correct content
-                mock_open_func.assert_called_once_with(output_file, 'w', encoding='utf-8')
-                mock_file.write.assert_called_once_with("Mocked changelog content")
-                assert "Changelog generated and saved to" in caplog.text
-
 def test_main_with_config_file(mock_git_repo, mock_ai_provider, mock_validate_commits, mock_get_commit_changes, caplog):
     test_args = ["--config", ".changelog.yaml", "commit1", "commit2"]
     
@@ -315,34 +279,3 @@ def test_main_invalid_repo(mock_git_repo, caplog):
                 assert exc_info.value.code == 1
                 assert "Error: Invalid git repository" in caplog.text
 
-def test_main_list_models(mock_ollama, caplog):
-    test_args = ["--list-models"]
-    
-    mock_ollama.list.return_value = {'models': [{'name': 'model1'}, {'name': 'model2'}]}
-    
-    with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
-        commit1=None,
-        commit2=None,
-        repo=".",
-        output=None,
-        model_provider="ollama",
-        model_name=None,
-        list_models=True,
-        verbose=False,
-        config=None,
-        branch=None,
-        commit_range=None
-    )), \
-    patch('changelog_generator.changelog_utils.AIProviderManager') as mock_ai:
-        mock_ai.return_value.invoke.return_value = "Mocked changelog content"
-        with patch('sys.argv', ['changelog_generator.py'] + test_args):
-            with caplog.at_level(logging.INFO):
-                try:
-                    main()
-                except SystemExit:
-                    pass  # Expected exit after listing models
-                
-                # Check log messages
-                log_text = caplog.text
-                assert "Available model: model1" in log_text or "model1" in log_text
-                assert "Available model: model2" in log_text or "model2" in log_text

@@ -1,13 +1,13 @@
 from typing import Dict, List
-from dotenv import load_dotenv
 import ollama
 import requests
 import os
+from changelog_generator.changelog_config import ChangelogConfig
 
 
 class AIProviderManager:
     def __init__(self, model_provider: str, model_name: str = None):
-        load_dotenv()
+        self.config = ChangelogConfig()
         self.model_provider = model_provider
         self.model_name = model_name or self._get_default_model_name()
         self.invoke_methods = {
@@ -16,11 +16,12 @@ class AIProviderManager:
         }
 
     def _get_default_model_name(self) -> str:
-        model_mapping = {
-            "ollama": os.getenv("OLLAMA_MODEL", "qwen2.5:14b"),
-            "xai": os.getenv("XAI_MODEL", "grok-2"),
-        }
-        return model_mapping.get(self.model_provider, "Unsupported model provider")
+        if self.model_provider == "ollama":
+            return self.config.get("ollama_model")
+        elif self.model_provider == "xai":
+            return self.config.get("xai_model")
+        else:
+            return "Unsupported model provider"
 
     def _generate_messages(self, changes: Dict[str, List[str]]) -> List[Dict[str, str]]:
         return [
@@ -64,9 +65,9 @@ class AIProviderManager:
             raise ValueError("Unexpected response format from Ollama")
 
     def _invoke_xai(self, changes: Dict[str, List[str]]) -> str:
-        xai_api_key = os.getenv("XAI_API_KEY")
+        xai_api_key = self.config.get("xai_api_key")
         if not xai_api_key:
-            raise ValueError("XAI_API_KEY not found in .env file")
+            raise ValueError("XAI_API_KEY not found in configuration")
 
         headers = {
             "Authorization": f"Bearer {xai_api_key}",

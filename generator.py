@@ -11,10 +11,10 @@ import yaml
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from ai_provider_manager import AIProviderManager
+from changelog_generator.ai_provider_manager import AIProviderManager
 
 # Local imports
-from changelog_utils import (
+from changelog_generator.changelog_utils import (
     format_breaking_changes,
     get_commit_changes,
     validate_commits,

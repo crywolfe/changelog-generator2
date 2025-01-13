@@ -17,6 +17,10 @@ DEFAULT_CONFIG = {
             "incompatible",
         ]
     },
+    "ollama_model": "qwen2.5:14b",
+    "xai_model": "grok-2",
+    "output_file": "CHANGELOG_DEFAULT.md",
+    "xai_api_key": None,
 }
 
 
@@ -37,6 +41,10 @@ class ChangelogConfig:
             "CHANGELOG_MODEL_PROVIDER": "model_provider",
             "CHANGELOG_MODEL_NAME": "model_name",
             "CHANGELOG_VERBOSE": "verbose",
+            "CHANGELOG_OLLAMA_MODEL": "ollama_model",
+            "CHANGELOG_XAI_MODEL": "xai_model",
+            "CHANGELOG_OUTPUT_FILE": "output_file",
+            "CHANGELOG_XAI_API_KEY": "xai_api_key",
         }
 
         for env_key, config_key in env_mappings.items():
