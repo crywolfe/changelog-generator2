@@ -194,7 +194,7 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         commit_range=None
     )), \
     patch('os.path.exists', return_value=True), \
-    patch('builtins.open', mock_open()) as mock_file:
+    patch('builtins.open', mock_open(read_data=b'')) as mock_file:
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
