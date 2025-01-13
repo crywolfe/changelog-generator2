@@ -138,70 +138,8 @@ def get_commit_changes(repo: git.Repo, commit1: Union[str, git.Commit], commit2:
         changes["commit_messages"].append(commit.message.strip())
 
     def detect_breaking_changes(message):
-        if not message or not isinstance(message, str):
-            print("Invalid commit message format")
-            return False
-            
-        try:
-            # Initialize AI provider with default model
-            config_path = '.changelog.yaml'
-
-            provider, model_name = load_provider_model_from_config(config_path)
-
-            logger.info(f"Initializing AI provider {provider} {model_name}...")
-            ai_provider = AIProviderManager(provider, model_name)
-            if not ai_provider:
-                print("Failed to initialize AI provider")
-                return False
-                
-            # Create prompt that explicitly requests Yes/No response
-            prompt = {
-                "task": "detect_breaking_changes",
-                "parameters": {
-                    "commit_message": message,
-                    "instructions": """Analyze the following commit message and determine if it contains breaking changes.
-Definition: A breaking change is any modification to the codebase that requires existing users to alter their code, configuration, or usage patterns to maintain compatibility with the updated version.
-
-Consider the following in your analysis:
-
-API Changes: Were any public APIs added, removed, or modified?
-Data Format Changes: Did the format of any data structures, files, or databases change?
-Behavioral Changes: Were there any significant changes in the software's behavior that could affect existing integrations or workflows?
-Dependency Updates: Did any dependency updates introduce breaking changes?
-Configuration Changes: Were there any changes to required configurations or environment variables?
-
-Respond with ONLY "Yes" or "No". Do not include any additional explanation or formatting."""
-                }
-            }
-                        # Get AI response
-            response = ai_provider.invoke(prompt)
-            if not response or not isinstance(response, dict):
-                return False
-                
-            # Extract response content
-            response_content = None
-            if "message" in response and hasattr(response["message"], "content"):
-                response_content = response["message"].content
-            elif "result" in response:
-                response_content = response["result"]
-            else:
-                return False
-                
-            # Clean and validate response
-            response_content = str(response_content).strip().lower()
-            if response_content not in ["yes", "no"]:
-                logger.error(f"Invalid response content: {response_content}")
-                return False
-                
-            return response_content == "yes"
-        except Exception as e:
-            logger.error(f"Error detecting breaking changes: {str(e)}")
-            # Fallback to simple keyword detection if AI fails
-            breaking_keywords = ["break", "breaking", "incompatible", "remove", "deprecate"]
-            if any(keyword in message.lower() for keyword in breaking_keywords):
-                print("Fallback detection: Found breaking change keyword")
-                return True
-            return False
+        breaking_keywords = ["break", "breaking", "incompatible", "remove", "deprecate"]
+        return any(keyword in message.lower() for keyword in breaking_keywords)
 
     # Validate changes dictionary structure before processing
     if not isinstance(changes, dict):
