@@ -50,6 +50,14 @@ def mock_ollama():
         yield mock
 
 @pytest.fixture
+def mock_open_bytes():
+    """
+    A fixture to mock open() to return bytes instead of str
+    """
+    with patch('builtins.open', unittest.mock.mock_open(read_data=b'test data')) as mock_file:
+        yield mock_file
+
+@pytest.fixture
 def mock_validate_commits():
     with patch('changelog_generator.changelog_utils.validate_commits') as mock:
         # Create mock commits
