@@ -49,8 +49,7 @@ def test_format_breaking_changes_with_changes():
     result = format_breaking_changes(changes)
     assert result == "- Change 1\n- Change 2"
 
-@patch('changelog_generator.changelog_utils.AIProviderManager')
-def test_get_commit_changes(mock_ai_provider, mock_repo):
+def test_get_commit_changes(mock_repo):
     repo, commit1, commit2 = mock_repo
     diff = Mock()
     diff.change_type = "M"
@@ -62,11 +61,6 @@ def test_get_commit_changes(mock_ai_provider, mock_repo):
     mock_commit = Mock()
     mock_commit.message = "commit message"
     repo.iter_commits.return_value = [mock_commit]
-    
-    mock_ai_instance = Mock()
-    mock_ai_provider.return_value = mock_ai_instance
-    # Mock AI response to indicate no breaking changes
-    mock_ai_instance.invoke.return_value = {"result": "No"}
     
     result = get_commit_changes(repo, commit1, commit2)
     

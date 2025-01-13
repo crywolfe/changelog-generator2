@@ -11,7 +11,7 @@ import os
 
 @pytest.fixture
 def mock_ai_provider():
-    with patch('changelog_generator.changelog_utils.AIProviderManager') as mock:
+    with patch('changelog_generator.ai_provider_manager.AIProviderManager') as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         mock_instance.invoke.return_value = "Mocked changelog content"
@@ -105,7 +105,7 @@ def test_generate_ai_changelog_success(mock_ai_provider, mock_changelog_config):
     # Mock the AI response to return exactly what we expect
     mock_ai_provider.invoke.return_value = "Mocked changelog content"
     
-    result = generate_ai_changelog(changes, ai_provider=mock_ai_provider)
+    result = generate_ai_changelog(changes, mock_ai_provider)
     assert result == "Mocked changelog content"
     mock_ai_provider.invoke.assert_called_once_with(changes)
 
