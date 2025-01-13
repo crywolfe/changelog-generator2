@@ -180,6 +180,9 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
 
     output_file = f"CHANGELOG_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
 
+    # Create a valid .mo file header (little-endian 32-bit words)
+    valid_mo_header = b'\x95\x04\x12\xde\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         commit1="commit1",
         commit2="commit2",
@@ -194,7 +197,7 @@ def test_main_success(mock_git_repo, mock_ai_provider, mock_validate_commits, mo
         commit_range=None
     )), \
     patch('os.path.exists', return_value=True), \
-    patch('builtins.open', mock_open(read_data=b'')) as mock_file:
+    patch('builtins.open', mock_open(read_data=valid_mo_header)) as mock_file:
         mock_ai_provider.invoke.return_value = "Mocked changelog content"
         with patch('sys.argv', ['changelog_generator.py'] + test_args):
             with caplog.at_level(logging.INFO):
