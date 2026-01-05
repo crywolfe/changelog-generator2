@@ -1,3 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "changelog-generator"
+version = "0.1.0"
+description = "A flexible, AI-powered changelog generator for Git repositories"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Changelog Generator Team", email = "changelog@example.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+keywords = ["changelog", "git", "ai", "automation", "documentation"]
+requires-python = ">=3.8"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "PyYAML>=6.0",
+    "GitPython>=3.1.0",
+    "jinja2>=3.1.0",
+    "tenacity>=8.0.0",
+    "requests>=2.28.0",
+    "ollama>=0.1.0",
+    "anthropic>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+changelog-generator = "changelog_generator.main:app"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/changelog-generator"
+Repository = "https://github.com/yourusername/changelog-generator"
+Documentation = "https://github.com/yourusername/changelog-generator#readme"
+Issues = "https://github.com/yourusername/changelog-generator/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["changelog_generator*"]
+
+[tool.setuptools.package-data]
+changelog_generator = ["templates/*.j2", "templates/*.html"]
+
 [tool.black]
 line-length = 88
 target-version = ['py312']
@@ -15,3 +83,14 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=changelog_generator --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

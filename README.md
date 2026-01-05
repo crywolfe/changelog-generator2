@@ -9,6 +9,10 @@ A flexible, AI-powered changelog generator for Git repositories.
 - 📝 Configurable changelog sections and output
 - 🔧 Supports project-level configuration
 - 💻 Easy-to-use CLI interface
+- 🔍 Supports custom commit ranges and branch selection
+- 📁 Automatically saves changelog with timestamped filenames
+- 🔄 Modular AI provider architecture for easy extension
+- 🎛 Version information available via `--version` flag
 
 ## Prerequisites
 
@@ -36,7 +40,7 @@ changelog_generator
 
 ### Configuration
 
-Create a `.changelog.yaml` file in your project root to customize changelog generation:
+Create a `.changelog.yaml` file in your project root to customize changelog generation. Here's an example configuration:
 
 ```yaml
 # Example .changelog.yaml configuration
@@ -52,14 +56,17 @@ changelog:
       title: "🚀 Features"
     - type: fix
       title: "🐛 Bug Fixes"
+  output_file: "CHANGELOG.md"
 
 ai:
   enabled: true
   provider: ollama
-  model_name: qwen2.5:14b
+  model_name: qwen3:latest
 ```
 
 ### CLI Options
+
+The changelog generator provides several CLI options for customization:
 
 ```bash
 # Generate changelog for a specific repository
@@ -71,42 +78,75 @@ python -m changelog_generator.main --branch develop
 # Generate changelog for a specific commit range
 python -m changelog_generator.main --commit-range "576ebd6..698b4d07"
 
-# Changelogs are automatically saved with timestamped filenames
-# e.g., CHANGELOG-YYYYMMDD_HHMMSS.md
-
 # Use a custom configuration file
 python -m changelog_generator.main --config /path/to/custom_config.yaml
 
 # Enable verbose logging
 python -m changelog_generator.main --verbose
+
+# Display version information
+python -m changelog_generator.main --version
 ```
+
+Changelogs are automatically saved with timestamped filenames (e.g., CHANGELOG-YYYYMMDD_HHMMSS.md).
 
 ## Configuration Options
 
 ### Git Settings
+
 - `repository_path`: Path to the Git repository (default: current directory)
 - `branch`: Branch to generate changelog for (default: main)
 - `commit_range`: Specific commit range to generate changelog
 
 ### Changelog Settings
+
 - `output_file`: Changelog output filename (default: CHANGELOG.md)
 - `sections`: Customize changelog sections by commit type
 
 ### AI Settings
+
 - `enabled`: Enable/disable AI-powered changelog generation
-- `provider`: AI provider (ollama or xai)
+- `provider`: AI provider (ollama, xai, or anthropic)
 - `model_name`: Specific AI model to use
 
 ### Logging Settings
+
 - `level`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
 
 ## AI Changelog Generation
 
 The changelog generator supports AI-powered changelog generation using:
+
 - Ollama (local AI models)
 - XAI (Grok)
+- Anthropic (via API)
 
-Ensure you have the necessary AI providers and models configured.
+To use AI-powered changelog generation:
+
+1. Ensure you have the necessary AI providers and models configured.
+2. Set `ai.enabled` to `true` in your `.changelog.yaml` file.
+3. Specify your preferred AI `provider` and `model_name`.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Git repository not found**:
+   - Ensure you're running the command in a Git repository directory.
+   - Check if the `repository_path` in `.changelog.yaml` is correct.
+
+2. **AI provider not configured**:
+   - Verify that your AI provider (Ollama, XAI, or Anthropic) is properly installed and configured.
+   - Check the `ai` section in your `.changelog.yaml` for correct settings.
+
+3. **Configuration file not found**:
+   - Ensure `.changelog.yaml` is in your project root.
+   - Use the `--config` CLI option to specify a custom configuration file path.
+
+### Debugging Tips
+
+- Use the `--verbose` CLI option to enable detailed logging.
+- Check the generated log files for error messages.
 
 ## Contributing
 
@@ -125,3 +165,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 Your Name - your.email@example.com
 
 Project Link: [https://github.com/yourusername/changelog_generator](https://github.com/yourusername/changelog_generator)
+
+## Additional Resources
+
+- [Example `.changelog.yaml` configuration](.changelog.yaml.example)
+- [Project Changelog Example](CHANGELOG.md)

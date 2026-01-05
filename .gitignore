@@ -62,5 +62,7 @@ Thumbs.db
 *.spec
 *.bin
 
+CHANGELOG_*.md
+
 # Jupyter Notebook
 .ipynb_checkpoints/<|eos|>

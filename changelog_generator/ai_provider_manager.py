@@ -1,39 +1,38 @@
 from typing import Dict, List
-import ollama
 import requests
-import os
-from changelog_generator.changelog_config import ChangelogConfig
+import logging
 
+from changelog_generator.config_models import AISettings
+from changelog_generator.anthropic_provider import AnthropicProvider
+from changelog_generator.ollama_provider import OllamaProvider
+from changelog_generator.xai_provider import XAIProvider
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 class AIProviderManager:
-    def __init__(self, model_provider: str, model_name: str = None):
-        self.config = ChangelogConfig()
-        self.model_provider = model_provider
-        self.model_name = model_name or self._get_default_model_name()
-        self.invoke_methods = {
-            "ollama": self._invoke_ollama,
-            "xai": self._invoke_xai,
+    def __init__(self, ai_settings: AISettings):
+        self.ai_settings = ai_settings
+        self.model_provider = ai_settings.provider
+        self.model_name = self._get_actual_model_name()
+        self._providers = {
+            "ollama": OllamaProvider,
+            "xai": XAIProvider,
+            "anthropic": self._invoke_anthropic,
         }
 
-    def _get_default_model_name(self) -> str:
+    def _get_actual_model_name(self) -> str:
+        """Determines the specific model name based on the configured provider."""
         if self.model_provider == "ollama":
-            return self.config.get("ollama_model")
+            return self.ai_settings.ollama_model
         elif self.model_provider == "xai":
-            return self.config.get("xai_model")
+            return self.ai_settings.xai_model
+        elif self.model_provider == "anthropic":
+            return self.ai_settings.anthropic_model
         else:
-            return "Unsupported model provider"
-
-    def _generate_messages(self, changes: Dict[str, List[str]]) -> List[Dict[str, str]]:
-        return [
-            {
-                "role": "system",
-                "content": "You are a professional changelog generator. Your task is to create clear, concise, and well-structured changelog entries based on provided updates, commits, or pull requests. Ensure each entry is categorized by type (e.g., Added, Fixed, Changed, Deprecated, Removed, Breaking Changes, etc.) and formatted consistently using markdown syntax. Include file names, commit messages, and a brief summary of the changes in each entry. Focus on readability and relevance for a technical software engineering audience. Output the changelog in markdown format.",
-            },
-            {
-                "role": "user",
-                "content": f"Generate a detailed and concise changelog for the following changes categorized by type (e.g., Added, Fixed, Changed, Deprecated, Removed, Breaking Changes, etc.): {changes}",
-            },
-        ]
+            raise ValueError(f"Unsupported model provider: {self.model_provider}")
 
     def invoke(self, changes: Dict[str, List[str]]) -> str:
         if not changes or not isinstance(changes, dict):
@@ -41,49 +40,21 @@ class AIProviderManager:
                 "Invalid changes format. Expected a dictionary with change categories."
             )
 
-        invoke_method = self.invoke_methods.get(self.model_provider)
-        if not invoke_method:
+        provider = self._providers.get(self.model_provider)
+        if not provider:
             raise ValueError(f"Unsupported model provider: {self.model_provider}")
 
         try:
-            return invoke_method(changes)
+            if isinstance(provider, type):  # If provider is a class (OllamaProvider, XAIProvider)
+                provider_instance = provider(self.ai_settings)
+                return provider_instance.invoke(changes)
+            else:  # If provider is a function (_invoke_anthropic)
+                return provider(changes)
         except (ValueError, requests.exceptions.RequestException, Exception) as e:
-            print(f"Error in {self.model_provider} provider: {str(e)}")
+            logger.error(f"Error in {self.model_provider} provider: {str(e)}")
             raise
 
-    def _invoke_ollama(self, changes: Dict[str, List[str]]) -> str:
-        response = ollama.chat(
-            model=self.model_name, messages=self._generate_messages(changes)
-        )
-        # Print the response object to inspect its structure
-        # print(f"Ollama Response: {response.__dict__}")
-
-        # Access the content from the nested message attribute
-        if hasattr(response, "message") and hasattr(response.message, "content"):
-            return response.message.content
-        else:
-            raise ValueError("Unexpected response format from Ollama")
-
-    def _invoke_xai(self, changes: Dict[str, List[str]]) -> str:
-        xai_api_key = self.config.get("xai_api_key")
-        if not xai_api_key:
-            raise ValueError("XAI_API_KEY not found in configuration")
-
-        headers = {
-            "Authorization": f"Bearer {xai_api_key}",
-            "Content-Type": "application/json",
-        }
-
-        payload = {
-            "model": self.model_name,
-            "messages": self._generate_messages(changes),
-        }
-
-        response = requests.post(
-            "https://api.x.ai/v1/chat/completions", headers=headers, json=payload
-        )
-
-        if response.status_code != 200:
-            raise ValueError(f"XAI API error: {response.text}")
-
-        return response.json()["choices"][0]["message"]["content"]
+    def _invoke_anthropic(self, changes: Dict[str, List[str]]) -> str:
+        # Pass AISettings to AnthropicProvider
+        anthropic_provider = AnthropicProvider(self.ai_settings)
+        return anthropic_provider.invoke(changes)

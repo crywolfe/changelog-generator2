@@ -1,4 +1,5 @@
-from .main import main
-from .generator import generate_ai_changelog, main as changelog_main, load_config
+from .generator import generate_ai_changelog
+from .main import app as cli_app # Expose the Typer app
+from .version import __version__ # Import version from version.py
 
-__all__ = ['main', 'generate_ai_changelog', 'changelog_main', 'load_config']
+__all__ = ['generate_ai_changelog', 'cli_app']

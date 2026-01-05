@@ -1,0 +1,28 @@
+# Changelog: {{ commit_range }} (via {{ model_provider }}/{{ model_name }})
+
+{% if ai_summary %}
+## AI Summary
+{{ ai_summary }}
+
+{% endif %}
+
+{% if breaking_changes %}
+## Breaking Changes
+
+{% for change in breaking_changes %}
+- {{ change }}
+{% endfor %}
+
+{% endif %}
+
+{% for commit_type, scopes in grouped_commits.items() %}
+## {{ commit_type }}
+
+{% for scope, commits in scopes.items() %}
+### {{ scope }}
+
+{% for commit in commits %}
+- {{ commit.description }} ({{ commit.hash[:7] }})
+{% endfor %}
+{% endfor %}
+{% endfor %}

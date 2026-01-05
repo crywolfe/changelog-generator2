@@ -1,0 +1,42 @@
+name: Generate Changelog
+
+on:
+  push:
+    branches:
+      - main # or your default branch like master, develop, etc.
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for changelog generation
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x' # Use a compatible Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Changelog
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # Example for Anthropic
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }} # Example for XAI
+          # Add other AI provider API keys as needed
+        run: |
+          # Example: Generate changelog using default settings
+          # You might want to customize this command based on your needs
+          python -m changelog_generator.main generate --verbose
+
+      - name: Commit and Push Changelog
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update changelog"
+          branch: main # or your default branch
+          file_pattern: "CHANGELOG_*.md" # Adjust if your output file name is different
