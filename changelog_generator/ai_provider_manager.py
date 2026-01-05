@@ -12,6 +12,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class AIProviderManager:
     def __init__(self, ai_settings: AISettings):
         self.ai_settings = ai_settings
@@ -45,7 +46,9 @@ class AIProviderManager:
             raise ValueError(f"Unsupported model provider: {self.model_provider}")
 
         try:
-            if isinstance(provider, type):  # If provider is a class (OllamaProvider, XAIProvider)
+            if isinstance(
+                provider, type
+            ):  # If provider is a class (OllamaProvider, XAIProvider)
                 provider_instance = provider(self.ai_settings)
                 return provider_instance.invoke(changes)
             else:  # If provider is a function (_invoke_anthropic)

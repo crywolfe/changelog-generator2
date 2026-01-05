@@ -1,18 +1,41 @@
 # Changelog Generator
 
-A flexible, AI-powered changelog generator for Git repositories.
+A flexible, AI-powered changelog generator for Git repositories that creates beautiful, structured changelogs from your commit history.
 
-## Features
+## ✨ Features
 
-- 🚀 Automatic changelog generation from Git commit history
-- 🤖 Optional AI-powered changelog enhancement
-- 📝 Configurable changelog sections and output
-- 🔧 Supports project-level configuration
-- 💻 Easy-to-use CLI interface
-- 🔍 Supports custom commit ranges and branch selection
-- 📁 Automatically saves changelog with timestamped filenames
-- 🔄 Modular AI provider architecture for easy extension
-- 🎛 Version information available via `--version` flag
+- 🚀 **Automatic changelog generation** from Git commit history
+- 🤖 **AI-powered enhancement** with multiple provider support (Ollama, XAI, Anthropic)
+- 📝 **Multiple output formats**: Markdown, HTML, and JSON
+- 🎯 **Smart CLI interface** - works without subcommands
+- 🔧 **Auto-configuration** - creates config files on first run
+- 🔍 **Advanced filtering** - custom commit ranges and branch selection
+- 📁 **Flexible output** - timestamped files or custom naming
+- 🛡️ **Robust validation** - comprehensive error handling and tips
+- 🎨 **Beautiful templates** - professional HTML and Markdown outputs
+- 🔄 **Modular architecture** - easy to extend with new providers
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+pip install changelog-generator
+```
+
+### Generate Your First Changelog
+
+```bash
+# Navigate to your Git repository
+cd your-git-repo
+
+# Generate changelog (creates config on first run)
+changelog-generator
+
+# Or specify output format
+changelog-generator --output changelog.html  # HTML format
+changelog-generator --output changelog.json  # JSON format
+```
 
 ## Prerequisites
 
@@ -28,67 +51,109 @@ A flexible, AI-powered changelog generator for Git repositories.
 pip install changelog_generator
 ```
 
-## Usage
+## 📖 Usage Examples
 
 ### Basic Usage
 
-Generate a changelog in the current Git repository:
-
 ```bash
-changelog_generator
+# Generate changelog in current directory
+changelog-generator
+
+# Generate for specific repository
+changelog-generator --repo /path/to/repo
+
+# Generate for specific branch
+changelog-generator --branch develop
+
+# Generate for specific commit range
+changelog-generator --commit-range "abc123..def456"
+
+# Use custom config file
+changelog-generator --config my-config.yaml
+
+# Enable verbose logging
+changelog-generator --verbose
 ```
 
-### Configuration
+### Output Format Examples
 
-Create a `.changelog.yaml` file in your project root to customize changelog generation. Here's an example configuration:
+```bash
+# Generate HTML changelog
+changelog-generator --output changelog.html
+
+# Generate JSON changelog for API consumption
+changelog-generator --output changelog.json
+
+# Generate with custom filename
+changelog-generator --output "release-v2.0.md"
+```
+
+### Advanced Examples
+
+```bash
+# Initialize configuration file
+changelog-generator init
+
+# List available AI models
+changelog-generator models
+
+# Generate changelog between two specific commits
+changelog-generator abc123 def456
+
+# Generate with specific AI provider
+changelog-generator --model-provider anthropic --model-name claude-3-opus-20240229
+```
+
+## ⚙️ Configuration
+
+The tool automatically creates a `.changelog.yaml` configuration file on first run. You can customize it:
 
 ```yaml
-# Example .changelog.yaml configuration
+# Git Repository Settings
 git:
   repository_path: .
   branch: main
-  # Optional: specify a specific commit range
-  # commit_range: 'old_commit..new_commit'
+  # commit_range: 'old_commit..new_commit'  # Optional
 
+# Changelog Generation Settings  
 changelog:
+  output_file: "CHANGELOG.md"
+  template: "markdown_template.j2"
   sections:
     - type: feat
       title: "🚀 Features"
     - type: fix
       title: "🐛 Bug Fixes"
-  output_file: "CHANGELOG.md"
+    - type: docs
+      title: "📝 Documentation"
 
+# AI-Powered Generation
 ai:
   enabled: true
-  provider: ollama
+  provider: ollama  # ollama, xai, or anthropic
   model_name: qwen3:latest
+  
+  # Provider-specific models
+  ollama_model: qwen3:latest
+  xai_model: grok-2
+  anthropic_model: claude-3-opus-20240229
+  
+  # API keys (optional - can use environment variables)
+  # xai_api_key: your_key_here
+  # anthropic_api_key: your_key_here
+
+# Breaking Change Detection
+breaking_change_detection:
+  keywords:
+    - "breaking"
+    - "breaking change" 
+    - "deprecated"
+    - "removed"
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
 ```
-
-### CLI Options
-
-The changelog generator provides several CLI options for customization:
-
-```bash
-# Generate changelog for a specific repository
-python -m changelog_generator.main --repo /path/to/repo
-
-# Generate changelog for a specific branch
-python -m changelog_generator.main --branch develop
-
-# Generate changelog for a specific commit range
-python -m changelog_generator.main --commit-range "576ebd6..698b4d07"
-
-# Use a custom configuration file
-python -m changelog_generator.main --config /path/to/custom_config.yaml
-
-# Enable verbose logging
-python -m changelog_generator.main --verbose
-
-# Display version information
-python -m changelog_generator.main --version
-```
-
-Changelogs are automatically saved with timestamped filenames (e.g., CHANGELOG-YYYYMMDD_HHMMSS.md).
 
 ## Configuration Options
 
@@ -113,40 +178,137 @@ Changelogs are automatically saved with timestamped filenames (e.g., CHANGELOG-Y
 
 - `level`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
 
-## AI Changelog Generation
+## 🤖 AI Provider Setup
 
-The changelog generator supports AI-powered changelog generation using:
+### Ollama (Local AI)
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
 
-- Ollama (local AI models)
-- XAI (Grok)
-- Anthropic (via API)
+# Start Ollama service
+ollama serve
 
-To use AI-powered changelog generation:
+# Pull a model
+ollama pull qwen3:latest
 
-1. Ensure you have the necessary AI providers and models configured.
-2. Set `ai.enabled` to `true` in your `.changelog.yaml` file.
-3. Specify your preferred AI `provider` and `model_name`.
+# Configure in .changelog.yaml
+ai:
+  provider: ollama
+  ollama_model: qwen3:latest
+```
 
-## Troubleshooting
+### XAI (Grok)
+```bash
+# Set API key
+export XAI_API_KEY="your-xai-api-key"
+
+# Or in .changelog.yaml
+ai:
+  provider: xai
+  xai_model: grok-2
+  xai_api_key: your-xai-api-key
+```
+
+### Anthropic (Claude)
+```bash
+# Set API key
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+
+# Or in .changelog.yaml
+ai:
+  provider: anthropic
+  anthropic_model: claude-3-opus-20240229
+  anthropic_api_key: your-anthropic-api-key
+```
+
+## 🎨 Output Formats
+
+### Markdown (Default)
+Standard markdown format suitable for GitHub, GitLab, and documentation sites.
+
+### HTML
+Beautiful, styled HTML with:
+- Responsive design
+- Syntax highlighting for commit hashes
+- Collapsible sections
+- Professional styling
+
+### JSON
+Machine-readable format perfect for:
+- API integrations
+- Custom processing
+- Data analysis
+- CI/CD pipelines
+
+```json
+{
+  "metadata": {
+    "commit_range": "abc123..def456",
+    "generated_at": "2024-01-15T10:30:00",
+    "total_commits": 42
+  },
+  "ai_summary": "Added user authentication and fixed critical bugs",
+  "breaking_changes": ["Removed deprecated API endpoints"],
+  "changes": {
+    "feat": {
+      "auth": [{"description": "Add OAuth2 support", "hash": "abc123"}]
+    }
+  }
+}
+```
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Git repository not found**:
-   - Ensure you're running the command in a Git repository directory.
-   - Check if the `repository_path` in `.changelog.yaml` is correct.
+#### Git Repository Issues
+```bash
+# Error: Not a git repository
+cd your-git-repo
 
-2. **AI provider not configured**:
-   - Verify that your AI provider (Ollama, XAI, or Anthropic) is properly installed and configured.
-   - Check the `ai` section in your `.changelog.yaml` for correct settings.
+# Error: No commits found
+git commit -m "Initial commit"
 
-3. **Configuration file not found**:
-   - Ensure `.changelog.yaml` is in your project root.
-   - Use the `--config` CLI option to specify a custom configuration file path.
+# Error: Branch not found
+git checkout -b main  # or your default branch
+```
 
-### Debugging Tips
+#### AI Provider Issues
+```bash
+# Ollama not running
+ollama serve
 
-- Use the `--verbose` CLI option to enable detailed logging.
-- Check the generated log files for error messages.
+# Missing model
+ollama pull qwen3:latest
+
+# Check available models
+changelog-generator models
+
+# API key issues
+export XAI_API_KEY="your-key"
+export ANTHROPIC_API_KEY="your-key"
+```
+
+#### Configuration Issues
+```bash
+# Create config file
+changelog-generator init
+
+# Validate configuration
+changelog-generator --verbose
+
+# Use custom config
+changelog-generator --config path/to/config.yaml
+```
+
+### Debug Mode
+```bash
+# Enable verbose logging
+changelog-generator --verbose
+
+# Check configuration loading
+changelog-generator --verbose --config .changelog.yaml
+```
 
 ## Contributing
 

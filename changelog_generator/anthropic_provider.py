@@ -9,6 +9,7 @@ from changelog_generator.config_models import AISettings
 
 logger = logging.getLogger(__name__)
 
+
 class AnthropicProvider(AIProvider):
     def __init__(self, ai_settings: AISettings):
         self.ai_settings = ai_settings
@@ -21,7 +22,7 @@ class AnthropicProvider(AIProvider):
             raise ValueError(
                 "Anthropic API key not found. Set 'anthropic_api_key' in config or 'ANTHROPIC_API_KEY' environment variable."
             )
-        
+
         try:
             return Anthropic(api_key=api_key)
         except Exception as e:
@@ -34,7 +35,7 @@ class AnthropicProvider(AIProvider):
             self.client.messages.create(
                 model=self.model_name,
                 max_tokens=10,
-                messages=[{"role": "user", "content": "test"}]
+                messages=[{"role": "user", "content": "test"}],
             )
             return True
         except Exception as e:
@@ -47,9 +48,7 @@ class AnthropicProvider(AIProvider):
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=self.ai_settings.max_tokens,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                messages=[{"role": "user", "content": prompt}],
             )
             return response.content[0].text
         except Exception as e:
@@ -62,7 +61,9 @@ class AnthropicProvider(AIProvider):
             "Generate a concise changelog entry based on the following Git changes:",
             "\n---",
             "Commit Messages:",
-            "\n".join([f"- {msg['raw_message']}" for msg in changes.get("commits", [])]),
+            "\n".join(
+                [f"- {msg['raw_message']}" for msg in changes.get("commits", [])]
+            ),
             "\n---",
             "Added Files:",
             "\n".join([f"- {f}" for f in changes.get("added_files", [])]),
@@ -76,6 +77,6 @@ class AnthropicProvider(AIProvider):
             "Breaking Changes Detected:",
             "\n".join([f"- {bc}" for bc in changes.get("breaking_changes", [])]),
             "\n---",
-            "Please provide a summary of these changes suitable for a changelog. Focus on user-facing changes, new features, bug fixes, and breaking changes. Group related changes logically."
+            "Please provide a summary of these changes suitable for a changelog. Focus on user-facing changes, new features, bug fixes, and breaking changes. Group related changes logically.",
         ]
         return "\n".join(prompt_parts)

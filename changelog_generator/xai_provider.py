@@ -8,6 +8,7 @@ from changelog_generator.config_models import AISettings
 
 logger = logging.getLogger(__name__)
 
+
 class XAIProvider(AIProvider):
     def __init__(self, ai_settings: AISettings):
         self.ai_settings = ai_settings
@@ -18,24 +19,24 @@ class XAIProvider(AIProvider):
         api_key = self.ai_settings.xai_api_key or os.getenv("XAI_API_KEY")
         if not api_key:
             return False
-        
+
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        
+
         try:
             # Simple test request to validate the connection
             payload = {
                 "model": self.model_name,
                 "messages": [{"role": "user", "content": "test"}],
-                "max_tokens": 10
+                "max_tokens": 10,
             }
             response = requests.post(
-                "https://api.x.ai/v1/chat/completions", 
-                headers=headers, 
+                "https://api.x.ai/v1/chat/completions",
+                headers=headers,
                 json=payload,
-                timeout=10
+                timeout=10,
             )
             return response.status_code == 200
         except Exception as e:
@@ -58,7 +59,7 @@ class XAIProvider(AIProvider):
         payload = {
             "model": self.model_name,
             "messages": messages,
-            "max_tokens": self.ai_settings.max_tokens
+            "max_tokens": self.ai_settings.max_tokens,
         }
 
         try:

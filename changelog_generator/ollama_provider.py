@@ -8,6 +8,7 @@ from changelog_generator.config_models import AISettings
 
 logger = logging.getLogger(__name__)
 
+
 class OllamaProvider(AIProvider):
     def __init__(self, ai_settings: AISettings):
         self.ai_settings = ai_settings
@@ -18,16 +19,24 @@ class OllamaProvider(AIProvider):
         """Check if the specified model is available in Ollama."""
         try:
             available_models = ollama.list()
-            model_names = [model.get('name', '') for model in available_models.get('models', [])]
-            
+            model_names = [
+                model.get("name", "") for model in available_models.get("models", [])
+            ]
+
             if self.model_name not in model_names:
-                logger.warning(f"Model '{self.model_name}' not found in Ollama. Available models: {model_names}")
-                raise ValueError(f"Model '{self.model_name}' is not available in Ollama. Run 'ollama pull {self.model_name}' to download it.")
+                logger.warning(
+                    f"Model '{self.model_name}' not found in Ollama. Available models: {model_names}"
+                )
+                raise ValueError(
+                    f"Model '{self.model_name}' is not available in Ollama. Run 'ollama pull {self.model_name}' to download it."
+                )
         except Exception as e:
             if "Model" in str(e) and "not found" in str(e):
                 raise
             logger.error(f"Failed to validate Ollama model availability: {e}")
-            raise ValueError("Ollama service appears to be unavailable. Ensure Ollama is running with 'ollama serve'")
+            raise ValueError(
+                "Ollama service appears to be unavailable. Ensure Ollama is running with 'ollama serve'"
+            )
 
     def validate_connection(self) -> bool:
         """Validate that Ollama is running and the model is available."""
@@ -44,7 +53,7 @@ class OllamaProvider(AIProvider):
             response = ollama.chat(
                 model=self.model_name,
                 messages=messages,
-                options={"num_predict": self.ai_settings.max_tokens}
+                options={"num_predict": self.ai_settings.max_tokens},
             )
             if hasattr(response, "message") and hasattr(response.message, "content"):
                 return response.message.content

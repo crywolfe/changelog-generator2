@@ -2,16 +2,22 @@ import git
 from typing import Optional
 from changelog_generator.config_models import AppConfig
 
-def get_git_commits(repo: git.Repo, config: AppConfig, commit1_hash: Optional[str] = None, commit2_hash: Optional[str] = None) -> tuple:
+
+def get_git_commits(
+    repo: git.Repo,
+    config: AppConfig,
+    commit1_hash: Optional[str] = None,
+    commit2_hash: Optional[str] = None,
+) -> tuple:
     """
     Get commits based on configuration or provided commit hashes
-    
+
     Args:
         repo (git.Repo): Git repository object
         config (AppConfig): Configuration object
         commit1_hash (Optional[str]): First commit hash
         commit2_hash (Optional[str]): Second commit hash
-    
+
     Returns:
         tuple: First and last commit
     """
@@ -23,7 +29,7 @@ def get_git_commits(repo: git.Repo, config: AppConfig, commit1_hash: Optional[st
     commit_range = config.git.commit_range
 
     if commit_range:
-        start, end = commit_range.split('..')
+        start, end = commit_range.split("..")
         commit1 = repo.commit(start)
         commit2 = repo.commit(end)
     else:
